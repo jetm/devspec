@@ -1,0 +1,177 @@
+name: spec-driven-custom
+version: 1
+description: Default OpenSpec workflow - proposal → specs → design → tasks
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Initial proposal document outlining the change
+    template: proposal.md
+    instruction: >
+      Create the proposal document. Follow this execution flow:
+
+      1. Parse the change description. Extract:
+         - Problem being solved
+         - Affected systems/components
+         - Expected user-facing changes
+
+      2. Fill the Why section:
+         - First sentence: the problem
+         - Second sentence: why now (trigger/urgency)
+         - Max 3 sentences total
+
+      3. Fill What Changes:
+         - One bullet per concrete change
+         - Each bullet: verb + object + scope
+         - Mark breaking changes with **BREAKING**
+         - Max 8 bullets
+
+      4. Fill Capabilities:
+         - Research existing specs: `ls openspec/specs/`
+         - New Capabilities: one per new behavioral contract. Each becomes a new `specs/<name>/spec.md`. Use kebab-case names.
+         - Modified Capabilities: only if REQUIREMENTS change (implementation-only changes don't need spec updates). Use exact kebab-case from existing specs. Leave empty if no requirement changes.
+
+      5. Fill Impact:
+         - List affected: files, APIs, dependencies, configs
+         - Note migration/rollback considerations
+
+      6. Self-validate:
+         - Every capability has a clear scope boundary
+         - No implementation details leaked into "Why" or "What"
+         - Impact section covers all items from "What Changes"
+         - Capabilities section is non-empty (it creates the contract between proposal and specs phases)
+
+      Keep it concise (1-2 pages). Focus on the "why" not the "how" - implementation details belong in design.md.
+      This is the foundation - specs, design, and tasks all build on this.
+    requires: []
+  - id: specs
+    generates: specs/**/*.md
+    description: Detailed specifications for the change
+    template: spec.md
+    instruction: >
+      Create spec files. For EACH capability from the proposal:
+
+      1. Determine operation type:
+         - New capability -> specs/<name>/spec.md under ADDED Requirements
+         - Modified capability -> specs/<name>/spec.md under MODIFIED Requirements
+         Use the exact kebab-case name from the proposal for new capabilities.
+         Use the existing spec folder name from openspec/specs/<capability>/ for modifications.
+
+      2. For each requirement:
+         - Name: imperative verb phrase (e.g., "User can export data")
+         - Body: use SHALL/MUST for normative statements (avoid should/may)
+         - Write exactly one sentence per behavioral constraint
+         - Format: `### Requirement: <name>` followed by description
+
+      3. For each requirement, write scenarios:
+         - MUST use #### heading (4 hashtags exactly)
+         - Every requirement needs >= 1 scenario
+         - Format: `#### Scenario: <name>` with WHEN/THEN format
+         - Cover: happy path, error case, edge case (if applicable)
+         - Scenarios are future test cases. Make them specific.
+         - **CRITICAL**: Using 3 hashtags or bullets will fail silently.
+
+      4. For MODIFIED requirements:
+         - Read existing spec: openspec/specs/<capability>/spec.md
+         - Copy ENTIRE requirement block (### through all ####)
+         - Paste under ## MODIFIED Requirements
+         - Edit to reflect new behavior
+         - Ensure header text matches exactly (whitespace-insensitive)
+         - NEVER use partial content (loses detail at archive time)
+         - If adding new concerns without changing existing behavior, use ADDED instead.
+
+      5. Use delta operations (## headers):
+         - ADDED Requirements: new capabilities
+         - MODIFIED Requirements: changed behavior (full updated content)
+         - REMOVED Requirements: deprecated features (include Reason and Migration)
+         - RENAMED Requirements: name changes only (FROM:/TO: format)
+
+      6. Self-validate per spec file:
+         - Every requirement has >= 1 scenario
+         - Scenarios use exactly #### headings
+         - WHEN/THEN are specific and testable
+         - No implementation details (no code, no file paths)
+         - MODIFIED blocks contain the full requirement (not partial)
+    requires:
+      - proposal
+  - id: design
+    generates: design.md
+    description: Technical design document with implementation details
+    template: design.md
+    instruction: >
+      Create the design document. Follow this execution flow:
+
+      1. Read proposal.md: extract the "why" and scope
+      2. Read all specs/: extract requirements and scenarios
+
+      3. Determine if design.md is needed (create only if any apply):
+         - Cross-cutting change (multiple services/modules) or new architectural pattern
+         - New external dependency or significant data model changes
+         - Security, performance, or migration complexity
+         - Ambiguity that benefits from technical decisions before coding
+
+      4. For each decision:
+         - State the choice
+         - State 2-3 alternatives considered
+         - State why this choice over alternatives
+         - Format: Decision / Alternatives / Rationale
+
+      5. Fill sections:
+         - Context: 2-3 sentences of background + constraints
+         - Goals: directly trace to proposal's "Why"
+         - Non-Goals: at least 1 item (forces scope thinking)
+         - Decisions: one per architectural choice
+         - Risks: format as [Risk] -> [Mitigation]
+         - Migration Plan: steps to deploy, rollback strategy (if applicable)
+         - Open Questions: outstanding decisions or unknowns to resolve
+
+      6. Self-validate:
+         - Every spec requirement is addressable by the design
+         - No orphan decisions (each traces to a requirement)
+         - Risks section is non-empty
+         - Focus on architecture and approach, not line-by-line implementation
+    requires:
+      - proposal
+  - id: tasks
+    generates: tasks.md
+    description: Implementation checklist with trackable tasks
+    template: tasks.md
+    instruction: >
+      Create the task list. Follow this execution flow:
+
+      1. Read specs/: extract every requirement
+      2. Read design.md: extract every decision and component
+      3. Map requirements -> components -> tasks
+
+      4. For each task specify:
+         - Checkbox: `- [ ] X.Y Description`
+         - File path where implementation goes (if applicable)
+         - Single responsibility: one task = one verifiable outcome
+
+      5. Organize into groups:
+         - Group 1: Setup (deps, config, scaffolding)
+         - Group 2-N: One group per capability from specs (order by dependency: foundational capabilities first)
+         - Final group: Integration / cross-cutting concerns
+         - Use ## numbered headings for groups
+
+      6. Task sizing:
+         - Each task completable in one coding session
+         - If a task needs sub-bullets, it's too big: split it
+         - Max 12 tasks per group
+
+      7. Self-validate:
+         - Every requirement from specs has >= 1 task
+         - Every task has a clear done condition
+         - No circular dependencies between groups
+         - Tasks are ordered: earlier tasks don't depend on later ones
+
+      **IMPORTANT**: The apply phase parses checkbox format to track progress. Tasks not using `- [ ]` won't be tracked.
+    requires:
+      - specs
+      - design
+apply:
+  requires:
+    - tasks
+  tracks: tasks.md
+  instruction: |
+    Read context files, work through pending tasks, mark complete as you go.
+    Pause if you hit blockers or need clarification.
