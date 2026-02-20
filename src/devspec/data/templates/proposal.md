@@ -20,4 +20,6 @@
 
 ## Impact
 
-<!-- Affected code, APIs, dependencies, systems -->
+<!-- Affected code, APIs, dependencies, systems.
+     If scope or impact is unclear, mark it:
+     [NEEDS CLARIFICATION: specific question about what's unclear] -->

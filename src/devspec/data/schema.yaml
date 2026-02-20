@@ -40,6 +40,12 @@ artifacts:
          - Impact section covers all items from "What Changes"
          - Capabilities section is non-empty (it creates the contract between proposal and specs phases)
 
+      7. Uncertainty markers:
+         - If a capability's scope or impact is genuinely unclear, use:
+           [NEEDS CLARIFICATION: specific question]
+         - Prefer explicit uncertainty over silent assumptions
+         - The analyze command will flag unresolved markers before implementation
+
       Keep it concise (1-2 pages). Focus on the "why" not the "how" - implementation details belong in design.md.
       This is the foundation - specs, design, and tasks all build on this.
     requires: []
@@ -91,6 +97,13 @@ artifacts:
          - WHEN/THEN are specific and testable
          - No implementation details (no code, no file paths)
          - MODIFIED blocks contain the full requirement (not partial)
+
+      7. Uncertainty markers:
+         - If a requirement's scope, threshold, or behavior is genuinely unclear, use:
+           [NEEDS CLARIFICATION: specific question]
+         - Prefer explicit uncertainty over silent assumptions
+         - The analyze command will flag unresolved markers before implementation
+         - Maximum 3 markers per spec file — if more exist, the spec needs more exploration
     requires:
       - proposal
   - id: design
