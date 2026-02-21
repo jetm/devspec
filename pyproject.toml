@@ -25,7 +25,7 @@ devspec = ["data/**/*"]
 
 [tool.ruff]
 line-length = 120
-target-version = "py314"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]

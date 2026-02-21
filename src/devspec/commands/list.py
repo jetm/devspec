@@ -6,7 +6,7 @@ import yaml
 
 from devspec.core.graph import ArtifactGraph
 from devspec.core.schema import load_schema
-from devspec.core.state import detect_completed
+from devspec.core.state import detect_completed, detect_task_progress
 
 
 @click.command("list")
@@ -37,11 +37,20 @@ def list_changes(as_json: bool, project_path: str) -> None:
         completed = detect_completed(schema, entry)
         is_complete = graph.is_complete(completed)
 
+        if is_complete:
+            done, total = detect_task_progress(entry, schema.apply.tracks)
+            if total > 0 and done < total:
+                status = "planned"
+            else:
+                status = "complete"
+        else:
+            status = "incomplete"
+
         changes.append(
             {
                 "name": entry.name,
                 "schema": meta.get("schema", "unknown"),
-                "status": "complete" if is_complete else "incomplete",
+                "status": status,
                 "created": meta.get("created", ""),
             }
         )
@@ -52,5 +61,5 @@ def list_changes(as_json: bool, project_path: str) -> None:
         click.echo("No active changes.")
     else:
         for c in changes:
-            icon = "+" if c["status"] == "complete" else "~"
+            icon = {"complete": "+", "planned": "~", "incomplete": "-"}[c["status"]]
             click.echo(f"  [{icon}] {c['name']} ({c['schema']}) — {c['status']}")

@@ -172,6 +172,30 @@ class TestList:
         data = json.loads(result.output)
         assert len(data) == 1
         assert data[0]["name"] == "test-change"
+        assert data[0]["status"] == "complete"
+
+    def test_list_planned_status(self, tmp_path):
+        """All artifacts present but tasks.md has unchecked items -> planned."""
+        project = _setup_change(tmp_path)
+        change_dir = project / "openspec" / "changes" / "test-change"
+        (change_dir / "tasks.md").write_text("## 1. Setup\n\n- [x] 1.1 Done\n- [ ] 1.2 Not done\n")
+        runner = CliRunner()
+        result = runner.invoke(cli, ["list", "--json", "--path", str(project)])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data[0]["status"] == "planned"
+
+    def test_list_incomplete_status(self, tmp_path):
+        """Missing artifacts -> incomplete."""
+        project = _setup_project(tmp_path)
+        change_dir = project / "openspec" / "changes" / "partial-change"
+        change_dir.mkdir()
+        (change_dir / "proposal.md").write_text("## Why\n\nTest.\n")
+        runner = CliRunner()
+        result = runner.invoke(cli, ["list", "--json", "--path", str(project)])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data[0]["status"] == "incomplete"
 
     def test_list_empty(self, tmp_path):
         project = _setup_project(tmp_path)
