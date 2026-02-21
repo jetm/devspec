@@ -189,14 +189,21 @@ Create the change and all artifacts needed for implementation.
 
 ## PHASE 2: BUILD
 
-Delegate the entire build phase to the `/devspec-build` skill.
+Implement all tasks from tasks.md sequentially.
 
-1. Invoke the `/devspec-build` skill with the change name `{{CHANGE_NAME}}`.
-2. Wait for the skill to complete all tasks and the review-refactor phase.
-3. **If the build skill hard-stops or pauses: HARD-STOP.**
-   Report: phase (build), what was completed, what files were changed, why it stopped.
-
-Do NOT implement tasks yourself. The build skill owns all implementation logic, parallel worker orchestration, and review-refactor.
+1. Read the tasks file using the `devspec://changes/{{CHANGE_NAME}}/tasks.md` MCP resource.
+2. Read the proposal, design, and delta specs for full context.
+3. For each pending task (marked `- [ ]`):
+   - Make the code changes required
+   - Keep changes minimal and focused on the task
+   - Call `mcp__devspec__devspec_task_mark` with the 1-based task index to mark it complete
+   - Continue to the next task
+4. **If any task is unclear or ambiguous: HARD-STOP.**
+   Report: phase (build), which task, what's unclear, tasks completed so far.
+5. After all tasks are complete, review the implementation:
+   - Remove unused code introduced across tasks (dead functions, unreachable branches, unused imports)
+   - Inline single-use helpers at their call site
+   - Do NOT add new functionality, change observable behavior, or add tests not in tasks.md
 
 ## PHASE 3: VERIFY
 

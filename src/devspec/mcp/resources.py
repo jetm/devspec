@@ -1,15 +1,42 @@
-"""devspec MCP resource handlers for data store access."""
+"""devspec MCP resource handlers for data store access.
+
+Note: Resource handlers return plain strings (including error messages as
+"Error: ..." strings) per MCP resource conventions. This differs from tool
+handlers which return structured {"error": {...}} dicts.
+"""
 
 from __future__ import annotations
 
 import importlib.resources
+import re
 
-from devspec.core.resolve import resolve_project_data_dir
+from devspec.core.resolve import KEBAB_CASE_RE, resolve_project_data_dir
 from devspec.mcp.server import mcp
+
+_SAFE_FILENAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
+
+
+_cached_data_dir = None
 
 
 def _data_dir(project: str | None = None):
-    return resolve_project_data_dir(project)
+    """Resolve project data dir with caching for the MCP server process."""
+    global _cached_data_dir
+    if project is not None:
+        return resolve_project_data_dir(project)
+    if _cached_data_dir is None:
+        _cached_data_dir = resolve_project_data_dir(None)
+    return _cached_data_dir
+
+
+def _validate_path_param(value: str, param_name: str) -> str | None:
+    """Validate a URI template parameter is safe for path construction.
+
+    Returns error string if invalid, None if valid.
+    """
+    if not value or "/" in value or "\\" in value or ".." in value:
+        return f"Error: Invalid {param_name}: {value!r}"
+    return None
 
 
 @mcp.resource("devspec://changes/")
@@ -31,6 +58,10 @@ def list_changes() -> str:
 @mcp.resource("devspec://changes/{name}/{artifact}")
 def get_artifact(name: str, artifact: str) -> str:
     """Return the content of a change artifact file (e.g. proposal.md, design.md, tasks.md)."""
+    if not KEBAB_CASE_RE.match(name):
+        return f"Error: Invalid change name: {name!r}"
+    if err := _validate_path_param(artifact, "artifact"):
+        return err
     try:
         data_dir = _data_dir()
     except FileNotFoundError as e:
@@ -40,7 +71,9 @@ def get_artifact(name: str, artifact: str) -> str:
     if not change_dir.exists():
         return f"Error: Change not found: {name}"
 
-    artifact_path = change_dir / artifact
+    artifact_path = (change_dir / artifact).resolve()
+    if not artifact_path.is_relative_to(change_dir.resolve()):
+        return f"Error: Invalid artifact path: {artifact}"
     if not artifact_path.exists():
         return f"Error: Artifact not found: {artifact}"
 
@@ -50,6 +83,10 @@ def get_artifact(name: str, artifact: str) -> str:
 @mcp.resource("devspec://changes/{name}/specs/{capability}")
 def get_delta_spec(name: str, capability: str) -> str:
     """Return the content of a capability's delta spec file."""
+    if not KEBAB_CASE_RE.match(name):
+        return f"Error: Invalid change name: {name!r}"
+    if err := _validate_path_param(capability, "capability"):
+        return err
     try:
         data_dir = _data_dir()
     except FileNotFoundError as e:
@@ -65,6 +102,8 @@ def get_delta_spec(name: str, capability: str) -> str:
 @mcp.resource("devspec://specs/{capability}")
 def get_main_spec(capability: str) -> str:
     """Return the content of a main spec file."""
+    if err := _validate_path_param(capability, "capability"):
+        return err
     try:
         data_dir = _data_dir()
     except FileNotFoundError as e:
@@ -80,6 +119,8 @@ def get_main_spec(capability: str) -> str:
 @mcp.resource("devspec://learnings/{category}")
 def get_learnings(category: str) -> str:
     """Return learning entries for a category."""
+    if err := _validate_path_param(category, "category"):
+        return err
     try:
         data_dir = _data_dir()
     except FileNotFoundError as e:

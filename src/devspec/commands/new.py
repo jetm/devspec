@@ -1,10 +1,7 @@
-import datetime
-
 import click
-import yaml
 
-from devspec.core.resolve import KEBAB_CASE_RE, resolve_project_data_dir
-from devspec.core.schema import load_schema
+from devspec.core.change import create_change
+from devspec.core.resolve import resolve_project_data_dir
 
 
 @click.command()
@@ -18,36 +15,13 @@ def new(name: str, project: str | None) -> None:
         click.echo(str(e))
         raise SystemExit(1)
 
-    changes_dir = data_dir / "changes"
-
-    if not changes_dir.exists():
-        click.echo("No changes/ directory. Run `devspec init` first.")
+    try:
+        change_dir, schema_name = create_change(data_dir / "changes", name)
+    except (FileNotFoundError, ValueError) as e:
+        click.echo(str(e))
         raise SystemExit(1)
-
-    if not name or not name.strip():
-        click.echo("Invalid change name: name must not be empty.")
-        raise SystemExit(1)
-
-    if not KEBAB_CASE_RE.match(name):
-        click.echo(f"Invalid change name: {name!r}. Use kebab-case (e.g., 'add-feature', 'fix-bug').")
-        raise SystemExit(1)
-
-    change_dir = changes_dir / name
-    if change_dir.exists():
-        click.echo(f"Change already exists: {name}")
-        raise SystemExit(1)
-
-    schema = load_schema()
-    change_dir.mkdir()
-
-    # Create .devspec.yaml metadata
-    meta = {"schema": schema.name, "created": datetime.date.today().isoformat()}
-    (change_dir / ".devspec.yaml").write_text(yaml.dump(meta, default_flow_style=False))
-
-    # Create specs subdirectory
-    (change_dir / "specs").mkdir()
 
     click.echo(f"Created change: {name}")
     click.echo(f"  Directory: changes/{name}/")
-    click.echo(f"  Schema: {schema.name}")
+    click.echo(f"  Schema: {schema_name}")
     click.echo("  Next: create proposal.md")

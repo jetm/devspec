@@ -1,3 +1,4 @@
+import functools
 import importlib.resources
 from dataclasses import dataclass, field
 
@@ -30,8 +31,12 @@ class Schema:
     apply: ApplyConfig
 
 
+@functools.cache
 def load_schema() -> Schema:
-    """Load the bundled schema.yaml from the data directory."""
+    """Load the bundled schema.yaml from the data directory.
+
+    Cached for the process lifetime since the schema is immutable.
+    """
     data_dir = importlib.resources.files("devspec.data")
     schema_text = (data_dir / "schema.yaml").read_text(encoding="utf-8")
     raw = yaml.safe_load(schema_text)
