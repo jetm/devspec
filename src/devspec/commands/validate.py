@@ -21,6 +21,8 @@ def validate(name: str | None, project_path: str) -> None:
 
         report = validate_change_delta_specs(change_dir)
         _print_report(report, f"Change: {name}")
+        if not report.valid:
+            raise SystemExit(1)
     else:
         # Validate all main specs
         specs_dir = root / "openspec" / "specs"
@@ -43,6 +45,8 @@ def validate(name: str | None, project_path: str) -> None:
 
         if all_valid:
             click.echo("All specs valid.")
+        else:
+            raise SystemExit(1)
 
 
 def _print_report(report, label: str) -> None:

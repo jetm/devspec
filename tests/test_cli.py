@@ -111,6 +111,33 @@ class TestNew:
         result = runner.invoke(cli, ["new", "my-change", "--path", str(project)])
         assert result.exit_code != 0
 
+    def test_rejects_name_with_spaces(self, tmp_path):
+        project = _setup_project(tmp_path)
+        runner = CliRunner()
+        result = runner.invoke(cli, ["new", "has spaces", "--path", str(project)])
+        assert result.exit_code != 0
+        assert "kebab-case" in result.output
+
+    def test_rejects_uppercase_name(self, tmp_path):
+        project = _setup_project(tmp_path)
+        runner = CliRunner()
+        result = runner.invoke(cli, ["new", "UPPERCASE", "--path", str(project)])
+        assert result.exit_code != 0
+        assert "kebab-case" in result.output
+
+    def test_rejects_empty_name(self, tmp_path):
+        project = _setup_project(tmp_path)
+        runner = CliRunner()
+        result = runner.invoke(cli, ["new", "", "--path", str(project)])
+        assert result.exit_code != 0
+        assert "empty" in result.output.lower()
+
+    def test_accepts_numeric_segments(self, tmp_path):
+        project = _setup_project(tmp_path)
+        runner = CliRunner()
+        result = runner.invoke(cli, ["new", "add-v2-support", "--path", str(project)])
+        assert result.exit_code == 0
+
 
 class TestStatus:
     def test_status_json(self, tmp_path):
@@ -198,6 +225,34 @@ class TestValidate:
         result = runner.invoke(cli, ["validate", "--path", str(project)])
         assert result.exit_code == 0
         assert "valid" in result.output.lower()
+
+    def test_validate_change_exits_nonzero_on_errors(self, tmp_path):
+        project = _setup_project(tmp_path)
+        change_dir = project / "openspec" / "changes" / "bad-change"
+        change_dir.mkdir()
+        specs_dir = change_dir / "specs" / "bad-cap"
+        specs_dir.mkdir(parents=True)
+        (specs_dir / "spec.md").write_text(
+            "## ADDED Requirements\n\n"
+            "### Requirement: Missing normative language\n"
+            "This requirement has no SHALL or MUST.\n"
+        )
+        runner = CliRunner()
+        result = runner.invoke(cli, ["validate", "bad-change", "--path", str(project)])
+        assert result.exit_code != 0
+
+    def test_validate_main_specs_exits_nonzero_on_errors(self, tmp_path):
+        project = _setup_project(tmp_path)
+        spec_dir = project / "openspec" / "specs" / "bad-cap"
+        spec_dir.mkdir(parents=True)
+        (spec_dir / "spec.md").write_text(
+            "# bad-cap Specification\n\n## Requirements\n\n"
+            "### Requirement: No normative language\n"
+            "This requirement has no SHALL or MUST.\n"
+        )
+        runner = CliRunner()
+        result = runner.invoke(cli, ["validate", "--path", str(project)])
+        assert result.exit_code != 0
 
 
 class TestArchive:

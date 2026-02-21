@@ -61,13 +61,16 @@ def archive_change(
     archive_dir = changes_dir / "archive"
     archive_dir.mkdir(parents=True, exist_ok=True)
 
-    # Generate target name
+    # Generate target name, appending numeric suffix on collision
     date_prefix = datetime.date.today().isoformat()
     target_name = f"{date_prefix}-{change_name}"
     target_path = archive_dir / target_name
 
     if target_path.exists():
-        raise FileExistsError(f"Archive target already exists: {target_path}")
+        suffix = 2
+        while (archive_dir / f"{target_name}-{suffix}").exists():
+            suffix += 1
+        target_path = archive_dir / f"{target_name}-{suffix}"
 
     shutil.move(str(change_dir), str(target_path))
 

@@ -1,10 +1,13 @@
 import datetime
+import re
 from pathlib import Path
 
 import click
 import yaml
 
 from devspec.core.schema import load_schema
+
+KEBAB_CASE_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 @click.command()
@@ -17,6 +20,14 @@ def new(name: str, project_path: str) -> None:
 
     if not changes_dir.exists():
         click.echo("No openspec/changes/ directory. Run `devspec init` first.")
+        raise SystemExit(1)
+
+    if not name or not name.strip():
+        click.echo("Invalid change name: name must not be empty.")
+        raise SystemExit(1)
+
+    if not KEBAB_CASE_RE.match(name):
+        click.echo(f"Invalid change name: {name!r}. Use kebab-case (e.g., 'add-feature', 'fix-bug').")
         raise SystemExit(1)
 
     change_dir = changes_dir / name

@@ -41,19 +41,41 @@ def test_archive_fails_if_change_missing(tmp_project: Path):
         archive_change(tmp_project, "nonexistent", skip_specs=True)
 
 
-def test_archive_fails_if_target_exists(tmp_project: Path):
+def test_archive_appends_suffix_on_collision(tmp_project: Path):
     change_dir = tmp_project / "openspec" / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     _make_complete_change(change_dir)
 
-    # Pre-create archive target
+    # Pre-create archive target to trigger collision
     target = tmp_project / "openspec" / "changes" / "archive" / "2026-01-15-my-change"
     target.mkdir(parents=True)
 
     with patch("devspec.core.archive.datetime") as mock_dt:
         mock_dt.date.today.return_value = datetime.date(2026, 1, 15)
-        with pytest.raises(FileExistsError, match="already exists"):
-            archive_change(tmp_project, "my-change", skip_specs=True)
+        result = archive_change(tmp_project, "my-change", skip_specs=True)
+
+    expected = tmp_project / "openspec" / "changes" / "archive" / "2026-01-15-my-change-2"
+    assert result.archive_path == expected
+    assert expected.exists()
+
+
+def test_archive_increments_suffix_on_multiple_collisions(tmp_project: Path):
+    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir.mkdir(parents=True)
+    _make_complete_change(change_dir)
+
+    # Pre-create two archive targets
+    archive_dir = tmp_project / "openspec" / "changes" / "archive"
+    (archive_dir / "2026-01-15-my-change").mkdir(parents=True)
+    (archive_dir / "2026-01-15-my-change-2").mkdir(parents=True)
+
+    with patch("devspec.core.archive.datetime") as mock_dt:
+        mock_dt.date.today.return_value = datetime.date(2026, 1, 15)
+        result = archive_change(tmp_project, "my-change", skip_specs=True)
+
+    expected = tmp_project / "openspec" / "changes" / "archive" / "2026-01-15-my-change-3"
+    assert result.archive_path == expected
+    assert expected.exists()
 
 
 def test_archive_skip_specs(tmp_project: Path):
