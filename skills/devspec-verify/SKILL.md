@@ -74,17 +74,41 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    - Review new code for consistency with project patterns
    - If significant deviations found: add SUGGESTION
 
-7. **Generate Verification Report**
+7. **Domain Review**
+
+   Dispatch specialized review agents for domain-specific analysis (security, performance, architecture).
+
+   **Discovery**:
+   - Glob `.claude/agents/review/*.md` to find review agent files
+   - If the directory does not exist or is empty, skip this phase and note it was skipped in the report
+
+   **Prepare context for agents**:
+   - Generate a code diff for the change (files modified during implementation)
+   - Summarize the change's artifacts (proposal, specs, design) into a brief context block
+
+   **Dispatch agents in parallel**:
+   - For each agent file found, dispatch it as a parallel Task sub-agent using the Task tool
+   - Pass each agent: the code diff and artifact summary as input
+   - Each agent file contains its own system prompt defining what to look for and how to report
+
+   **Collect results**:
+   - Wait for all agents to complete
+   - If an agent fails or times out, log a WARNING with the agent name and continue with remaining agents
+
+   **Note**: Agent findings are integrated into the report in step 8.
+
+8. **Generate Verification Report**
 
    ```
    ## Verification Report: <change-name>
 
    ### Summary
-   | Dimension    | Status           |
-   |--------------|------------------|
-   | Completeness | X/Y tasks, N reqs|
-   | Correctness  | M/N reqs covered |
-   | Coherence    | Followed/Issues  |
+   | Dimension     | Status           |
+   |---------------|------------------|
+   | Completeness  | X/Y tasks, N reqs|
+   | Correctness   | M/N reqs covered |
+   | Coherence     | Followed/Issues  |
+   | Domain Review | N agents, M findings |
    ```
 
    **Issues by Priority**:
@@ -102,6 +126,27 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    3. **SUGGESTION** (Nice to fix):
       - Pattern inconsistencies
       - Minor improvements
+
+   ### Domain Review
+
+   For each review agent that ran, include a subsection:
+
+   ```
+   #### <agent-name>
+   <findings or "No issues found. Agent ran cleanly.">
+   ```
+
+   If an agent failed, note it:
+   ```
+   #### <agent-name>
+   WARNING: Agent failed to complete. Error: <reason>
+   ```
+
+   If no agents were found:
+   ```
+   #### Domain Review
+   Skipped - no review agents found in `.claude/agents/review/`.
+   ```
 
    **Final Assessment**:
    - If CRITICAL issues: "X critical issue(s) found. Fix before archiving."

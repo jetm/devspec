@@ -65,15 +65,32 @@ Archive a completed change.
    devspec archive <name>
    ```
 
-6. **Display summary**
+6. **Offer learning capture**
+
+   After a successful archive, prompt the user to capture lessons from the change.
+
+   Use the **AskUserQuestion tool** to ask: "Capture lessons from this change? (This saves insights to `devspec/learnings/` for future reference)"
+
+   **If the user accepts:**
+   - Run the learning capture flow inline (same as `/devspec-learn`):
+     - Read the archived change's artifacts from `openspec/changes/archive/<timestamp>-<name>/`
+     - Guide the user through lesson extraction (see `/devspec-learn` skill for the full flow)
+     - Write the learning file to `devspec/learnings/<category>/<slug>.md`
+   - Then proceed to the summary
+
+   **If the user declines:**
+   - Proceed directly to the summary
+
+7. **Display summary**
 
    ```
    ## Archive Complete
 
    **Change:** <change-name>
    **Schema:** <schema-name>
-   **Archived to:** devspec/changes/archive/YYYY-MM-DD-<name>/
+   **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
    **Specs:** Synced / No delta specs / Sync skipped
+   **Learnings:** Captured / Skipped
 
    All artifacts complete. All tasks complete.
    ```
@@ -83,3 +100,4 @@ Archive a completed change.
 - Use artifact status from CLI for completion checking
 - Don't block archive on warnings -- just inform and confirm
 - Show clear summary of what happened
+- Learning capture is optional -- don't pressure, just offer

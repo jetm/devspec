@@ -38,7 +38,21 @@ Plan a change -- create all artifacts needed before implementation.
    - `applyRequires`: artifacts needed before implementation
    - `artifacts`: list of all artifacts with status and dependencies
 
-4. **Create artifacts in dependency order**
+4. **Check for relevant learnings**
+
+   If `devspec/learnings/` exists and is not empty, search for learnings relevant to this change:
+
+   ```bash
+   grep -rl "<relevant keywords from proposal/handoff>" devspec/learnings/ 2>/dev/null
+   ```
+
+   Also check YAML frontmatter `tags` and `title` fields for keyword matches against the change's topic.
+
+   If relevant learnings are found, read them and use their insights as additional context when creating artifacts. For example, if a prior learning says "always define error contracts for CLI commands", factor that into the specs.
+
+   Don't force learnings into artifacts if they aren't relevant. If `devspec/learnings/` doesn't exist, skip this step silently.
+
+5. **Create artifacts in dependency order**
 
    Loop through artifacts (those with no pending dependencies first):
 
@@ -70,13 +84,13 @@ Plan a change -- create all artifacts needed before implementation.
 
    For independent artifacts, you may delegate writing to a sonnet subagent via the Task tool to speed things up.
 
-5. **Validate the change**
+6. **Validate the change**
    ```bash
    devspec validate <name>
    ```
    Fix any issues reported by validation.
 
-6. **Show final status**
+7. **Show final status**
    ```bash
    devspec status --change "<name>"
    ```

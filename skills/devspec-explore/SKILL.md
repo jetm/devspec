@@ -82,6 +82,18 @@ This tells you:
 
 If the user mentioned a specific change name, read its artifacts for context.
 
+### Check for relevant learnings
+
+If `devspec/learnings/` exists and is not empty, search for learnings relevant to the exploration topic:
+
+```bash
+grep -rl "<topic keywords>" devspec/learnings/ 2>/dev/null
+```
+
+Also check YAML frontmatter `tags` and `title` fields for keyword matches. If relevant learnings are found, mention them naturally as context early in the conversation - e.g., "There's a prior learning about <topic> from the <change-name> change that might be relevant."
+
+Don't force learnings into the conversation if they aren't relevant. If `devspec/learnings/` doesn't exist, proceed without mentioning it.
+
 ### When no change exists
 
 Think freely. When insights crystallize, you might offer:
@@ -168,6 +180,61 @@ devspec handoff write <name>
 ```
 
 This captures the key insights and decisions from the exploration session so `/devspec-plan` can pick up where you left off.
+
+---
+
+## Research Dispatch
+
+When the user asks to "research this", "dig deeper", "investigate more thoroughly", or similar phrasing, you can dispatch parallel sub-agents for structured investigation. This is optional - only trigger when the user explicitly requests deeper research.
+
+**When NOT to dispatch**: Normal exploration, casual questions, or when the user is thinking out loud. Research dispatch is for when the user wants comprehensive, parallel investigation.
+
+### Triggering Research
+
+When the user triggers research:
+
+1. **Extract the topic** from the current conversation context into a focused prompt
+2. **Include change context** if an active devspec change is relevant (proposal summary)
+3. **Dispatch three sub-agents in parallel** using the Task tool:
+
+#### Codebase Analyst
+- **Task tool subagent_type**: `Explore` (read-only, can search code)
+- **Prompt**: Search the project codebase for patterns, implementations, and integration points related to the topic. Look for existing code that is relevant, similar patterns already in use, and potential integration challenges.
+
+#### Docs Researcher
+- **Task tool subagent_type**: general-purpose (has WebSearch access)
+- **Prompt**: Search for relevant library, framework, and API documentation related to the topic. Focus on official docs, migration guides, and API references. Use WebSearch to find current documentation.
+
+#### Best Practices Researcher
+- **Task tool subagent_type**: general-purpose (has WebSearch access)
+- **Prompt**: Search for established patterns, recommendations, and community best practices related to the topic. Look for common pitfalls, recommended approaches, and real-world experience reports. Use WebSearch to find relevant resources.
+
+### Handling Results
+
+- Wait for all three agents to complete
+- If an agent fails or times out, present results from the remaining agents and note which one failed
+- Present findings as structured summaries within the conversation - do NOT write results to files
+
+### Result Presentation Format
+
+```
+## Research Results: <topic>
+
+### Codebase Analysis
+<summary of findings from codebase analyst>
+
+### Documentation
+<summary of findings from docs researcher>
+
+### Best Practices
+<summary of findings from best practices researcher>
+
+---
+
+Based on this research, here's what stands out: <synthesis>
+```
+
+After presenting results, return to normal explore mode. The research findings become part of the conversation context for continued exploration.
 
 ---
 
