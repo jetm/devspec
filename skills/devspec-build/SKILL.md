@@ -5,7 +5,7 @@ description: |
   Use when: "build change", "implement tasks", "devspec build", "start implementing".
   Works through tasks sequentially, makes code changes, marks complete. Runs on sonnet via subagent.
 context: fork
-agent: sonnet-worker
+agent: devspec-worker
 ---
 
 Implement tasks from a devspec change.

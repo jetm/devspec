@@ -4,6 +4,7 @@ description: |
   Generate or refresh Claude Code auto memory for the current project.
   Use when: "devspec memory", "generate memory", "refresh memory", "populate memory", "learn project".
   Reads CLAUDE.md, docs, and codebase structure to create optimized memory files. Runs inline at opus.
+disable-model-invocation: true
 ---
 
 Generate or refresh Claude Code's auto memory for the current project.
@@ -25,21 +26,13 @@ starts every session with project-specific knowledge instead of rediscovering it
 
 ## Steps
 
-### 1. Resolve project paths
+### 1. Resolve the memory directory
 
-Find the project root by locating the `.devspec` marker file (walk parent directories from cwd).
-Read the marker to get the project name.
+Your auto memory directory path is provided in the system prompt (look for
+"persistent auto memory directory at"). Use that path directly - do not
+compute it manually.
 
-Compute the Claude Code memory path:
-- Take the absolute path to the project root directory
-- Replace all `/` with `-`
-- Drop the leading `-`
-- Prefix with `~/.claude/projects/`
-- Append `/memory/`
-
-Example: `/home/user/repos/my-project` -> `~/.claude/projects/-home-user-repos-my-project/memory/`
-
-Create the memory directory if it doesn't exist.
+If the directory doesn't exist, create it.
 
 ### 2. Read existing knowledge sources
 

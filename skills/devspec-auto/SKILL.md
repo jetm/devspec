@@ -4,6 +4,7 @@ description: |
   Run the full devspec pipeline autonomously from a handoff.
   Use when: "devspec auto", "auto build", "run pipeline", "autonomous build", "auto plan and build".
   Validates handoff, then runs plan, build, verify, and archive as a single autonomous agent. Hard-stops on ambiguity.
+disable-model-invocation: true
 ---
 
 Run the full devspec pipeline (plan, build, verify, archive) autonomously from an explore handoff.
@@ -134,9 +135,14 @@ All phases complete. Review unstaged changes with `git diff` and `git status`.
 
 The following is the prompt template passed to the Task subagent. Replace `{{HANDOFF_CONTENT}}` with the actual handoff output and `{{CHANGE_NAME}}` with the change name.
 
-<!-- Derived from: devspec-plan@2026-02-21, devspec-build@2026-02-21,
+<!-- INTENTIONAL DUPLICATION: This composite prompt is NOT a bug.
+     The auto pipeline deliberately inlines modified versions of each skill phase
+     because it replaces all interactive behavior (AskUserQuestion, pause-and-ask)
+     with hard-stops. Using `skills:` preloading would inject the interactive versions,
+     which would break autonomous execution.
+     When source skills change, manually sync relevant changes here.
+     Derived from: devspec-plan@2026-02-21, devspec-build@2026-02-21,
      devspec-verify@2026-02-21, devspec-archive@2026-02-21 -->
-<!-- When updating source skills, check if changes apply here -->
 
 ````
 You are running the devspec pipeline autonomously. Execute all four phases in order. Do NOT skip phases. Do NOT ask the user anything - if something is unclear, hard-stop immediately.

@@ -4,6 +4,7 @@ description: |
   Archive a completed devspec change.
   Use when: "archive change", "devspec archive", "finalize change", "done with change".
   Checks completion, prompts for spec sync, archives. Runs on haiku via subagent.
+disable-model-invocation: true
 context: fork
 agent: haiku-worker
 ---

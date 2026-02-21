@@ -4,6 +4,7 @@ description: |
   Enter explore mode for thinking through ideas and investigating problems.
   Use when: "explore", "think about", "investigate", "devspec explore", "what if".
   Interactive thinking partner. Read-only - no code changes. Runs inline at opus.
+allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.

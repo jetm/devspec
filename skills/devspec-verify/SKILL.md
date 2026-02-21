@@ -4,6 +4,7 @@ description: |
   Verify implementation matches devspec change artifacts.
   Use when: "verify change", "devspec verify", "check implementation", "ready to archive?".
   Checks completeness, correctness, and coherence. Generates verification report. Runs inline at opus.
+allowed-tools: Read, Grep, Glob, Bash, Task
 ---
 
 Verify that an implementation matches the change artifacts (specs, tasks, design).

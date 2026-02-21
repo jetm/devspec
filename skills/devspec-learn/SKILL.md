@@ -4,6 +4,7 @@ description: |
   Capture lessons learned from a completed or archived devspec change.
   Use when: "capture lessons", "devspec learn", "what did we learn", "learning from change".
   Reads change artifacts, guides lesson extraction, writes to knowledge base. Runs inline at opus.
+disable-model-invocation: true
 ---
 
 Capture lessons learned from a completed or archived change.
