@@ -7,13 +7,17 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 @pytest.fixture
 def tmp_project(tmp_path):
-    """Create a temporary project directory with openspec/ structure."""
-    openspec = tmp_path / "openspec"
-    openspec.mkdir()
-    (openspec / "specs").mkdir()
-    (openspec / "changes").mkdir()
-    (openspec / "changes" / "archive").mkdir()
-    return tmp_path
+    """Create a temporary project data directory with devspec global store layout.
+
+    Returns the data_dir path (equivalent to <data_root>/<project>/).
+    """
+    data_dir = tmp_path / "data_dir"
+    data_dir.mkdir()
+    (data_dir / "specs").mkdir()
+    (data_dir / "changes").mkdir()
+    (data_dir / "changes" / "archive").mkdir()
+    (data_dir / "learnings").mkdir()
+    return data_dir
 
 
 @pytest.fixture
@@ -26,9 +30,9 @@ def sample_schema_yaml():
 @pytest.fixture
 def sample_change(tmp_project):
     """Create a sample change directory with basic artifacts."""
-    change_dir = tmp_project / "openspec" / "changes" / "test-change"
+    change_dir = tmp_project / "changes" / "test-change"
     change_dir.mkdir()
-    (change_dir / ".openspec.yaml").write_text("schema: spec-driven-custom\ncreated: 2026-02-19\n")
+    (change_dir / ".devspec.yaml").write_text("schema: spec-driven-custom\ncreated: 2026-02-19\n")
     (change_dir / "proposal.md").write_text(
         "## Why\n\nTest motivation.\n\n## What Changes\n\n- Add test feature\n\n"
         "## Capabilities\n\n### New Capabilities\n- `test-cap`: Test capability\n\n"

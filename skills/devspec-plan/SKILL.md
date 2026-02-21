@@ -26,7 +26,7 @@ Plan a change -- create all artifacts needed before implementation.
    ```bash
    devspec new <name>
    ```
-   This scaffolds a change directory at `devspec/changes/<name>/`.
+   This scaffolds a change directory in the project's global data store.
 
    If a change already exists, confirm the user wants to continue it.
 
@@ -40,17 +40,13 @@ Plan a change -- create all artifacts needed before implementation.
 
 4. **Check for relevant learnings**
 
-   If `devspec/learnings/` exists and is not empty, search for learnings relevant to this change:
+   Check the project's learnings directory for relevant prior lessons. The learnings are stored in the global data store under the `learnings/` subdirectory.
 
-   ```bash
-   grep -rl "<relevant keywords from proposal/handoff>" devspec/learnings/ 2>/dev/null
-   ```
-
-   Also check YAML frontmatter `tags` and `title` fields for keyword matches against the change's topic.
+   Search YAML frontmatter `tags` and `title` fields for keyword matches against the change's topic.
 
    If relevant learnings are found, read them and use their insights as additional context when creating artifacts. For example, if a prior learning says "always define error contracts for CLI commands", factor that into the specs.
 
-   Don't force learnings into artifacts if they aren't relevant. If `devspec/learnings/` doesn't exist, skip this step silently.
+   Don't force learnings into artifacts if they aren't relevant. If no learnings directory exists, skip this step silently.
 
 5. **Create artifacts in dependency order**
 

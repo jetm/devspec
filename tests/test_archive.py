@@ -21,7 +21,7 @@ def _make_complete_change(change_dir: Path) -> None:
 
 
 def test_archive_moves_to_dated_directory(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     _make_complete_change(change_dir)
 
@@ -29,7 +29,7 @@ def test_archive_moves_to_dated_directory(tmp_project: Path):
         mock_dt.date.today.return_value = datetime.date(2026, 1, 15)
         result = archive_change(tmp_project, "my-change", skip_specs=True)
 
-    expected = tmp_project / "openspec" / "changes" / "archive" / "2026-01-15-my-change"
+    expected = tmp_project / "changes" / "archive" / "2026-01-15-my-change"
     assert result.archive_path == expected
     assert expected.exists()
     assert not change_dir.exists()
@@ -42,30 +42,30 @@ def test_archive_fails_if_change_missing(tmp_project: Path):
 
 
 def test_archive_appends_suffix_on_collision(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     _make_complete_change(change_dir)
 
     # Pre-create archive target to trigger collision
-    target = tmp_project / "openspec" / "changes" / "archive" / "2026-01-15-my-change"
+    target = tmp_project / "changes" / "archive" / "2026-01-15-my-change"
     target.mkdir(parents=True)
 
     with patch("devspec.core.archive.datetime") as mock_dt:
         mock_dt.date.today.return_value = datetime.date(2026, 1, 15)
         result = archive_change(tmp_project, "my-change", skip_specs=True)
 
-    expected = tmp_project / "openspec" / "changes" / "archive" / "2026-01-15-my-change-2"
+    expected = tmp_project / "changes" / "archive" / "2026-01-15-my-change-2"
     assert result.archive_path == expected
     assert expected.exists()
 
 
 def test_archive_increments_suffix_on_multiple_collisions(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     _make_complete_change(change_dir)
 
     # Pre-create two archive targets
-    archive_dir = tmp_project / "openspec" / "changes" / "archive"
+    archive_dir = tmp_project / "changes" / "archive"
     (archive_dir / "2026-01-15-my-change").mkdir(parents=True)
     (archive_dir / "2026-01-15-my-change-2").mkdir(parents=True)
 
@@ -73,13 +73,13 @@ def test_archive_increments_suffix_on_multiple_collisions(tmp_project: Path):
         mock_dt.date.today.return_value = datetime.date(2026, 1, 15)
         result = archive_change(tmp_project, "my-change", skip_specs=True)
 
-    expected = tmp_project / "openspec" / "changes" / "archive" / "2026-01-15-my-change-3"
+    expected = tmp_project / "changes" / "archive" / "2026-01-15-my-change-3"
     assert result.archive_path == expected
     assert expected.exists()
 
 
 def test_archive_skip_specs(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     _make_complete_change(change_dir)
 
@@ -89,9 +89,9 @@ def test_archive_skip_specs(tmp_project: Path):
 
 
 def test_archive_force_allows_incomplete(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
-    # Only create proposal — incomplete
+    # Only create proposal -- incomplete
     (change_dir / "proposal.md").write_text("proposal content")
 
     result = archive_change(tmp_project, "my-change", skip_specs=True, force=True)
@@ -99,9 +99,9 @@ def test_archive_force_allows_incomplete(tmp_project: Path):
 
 
 def test_archive_fails_incomplete_without_force(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
-    # Only create proposal — incomplete
+    # Only create proposal -- incomplete
     (change_dir / "proposal.md").write_text("proposal content")
 
     with pytest.raises(ValueError, match="Incomplete artifacts"):
@@ -112,7 +112,7 @@ def test_archive_fails_incomplete_without_force(tmp_project: Path):
 
 
 def test_generate_instructions_basic(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
 
     bundle = generate_instructions(tmp_project, "proposal", "my-change")
@@ -126,10 +126,10 @@ def test_generate_instructions_basic(tmp_project: Path):
 
 
 def test_generate_instructions_with_context(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
 
-    config_path = tmp_project / "openspec" / "config.yaml"
+    config_path = tmp_project / "config.yaml"
     config_path.write_text("context: This is a CLI tool for spec management.\n")
 
     bundle = generate_instructions(tmp_project, "proposal", "my-change")
@@ -137,10 +137,10 @@ def test_generate_instructions_with_context(tmp_project: Path):
 
 
 def test_generate_instructions_with_rules(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
 
-    config_path = tmp_project / "openspec" / "config.yaml"
+    config_path = tmp_project / "config.yaml"
     config_path.write_text(
         "rules:\n  proposal:\n    - Keep proposals under 500 words\n    - Focus on user-facing changes\n"
     )
@@ -150,7 +150,7 @@ def test_generate_instructions_with_rules(tmp_project: Path):
 
 
 def test_generate_instructions_reads_dependencies(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     (change_dir / "proposal.md").write_text("My proposal content")
 
@@ -165,7 +165,7 @@ def test_generate_instructions_unknown_artifact(tmp_project: Path):
 
 
 def test_generate_instructions_glob_output_path(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     (change_dir / "proposal.md").write_text("proposal")
 
@@ -174,7 +174,7 @@ def test_generate_instructions_glob_output_path(tmp_project: Path):
 
 
 def test_generate_instructions_reads_glob_dependencies(tmp_project: Path):
-    change_dir = tmp_project / "openspec" / "changes" / "my-change"
+    change_dir = tmp_project / "changes" / "my-change"
     change_dir.mkdir(parents=True)
     (change_dir / "proposal.md").write_text("proposal")
     specs_dir = change_dir / "specs" / "auth"

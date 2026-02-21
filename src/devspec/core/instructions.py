@@ -19,7 +19,7 @@ class InstructionBundle:
 
 
 def generate_instructions(
-    project_root: Path,
+    data_dir: Path,
     artifact_id: str,
     change_name: str,
 ) -> InstructionBundle:
@@ -36,8 +36,8 @@ def generate_instructions(
         raise ValueError(f"Unknown artifact: {artifact_id}")
 
     # Read template from bundled data
-    data_dir = importlib.resources.files("devspec.data")
-    template = (data_dir / "templates" / artifact.template).read_text(encoding="utf-8")
+    bundled_data_dir = importlib.resources.files("devspec.data")
+    template = (bundled_data_dir / "templates" / artifact.template).read_text(encoding="utf-8")
 
     # Determine output path
     generates = artifact.generates
@@ -50,7 +50,7 @@ def generate_instructions(
     # Load config.yaml for context and rules
     context = ""
     rules: list[str] = []
-    config_path = project_root / "openspec" / "config.yaml"
+    config_path = data_dir / "config.yaml"
     if config_path.exists():
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
         context = raw.get("context", "")
@@ -59,7 +59,7 @@ def generate_instructions(
             rules = artifact_rules[artifact_id]
 
     # Read dependency content from change directory
-    change_dir = project_root / "openspec" / "changes" / change_name
+    change_dir = data_dir / "changes" / change_name
     dependencies: dict[str, str] = {}
     for req_id in artifact.requires:
         # Find the required artifact to get its generates path

@@ -58,20 +58,20 @@ def read_handoff_bundle(change_dir: Path) -> str:
     return "\n\n---\n\n".join(parts) if parts else ""
 
 
-def build_context(project_root: Path, change_name: str, max_tokens: int | None = None) -> str:
+def build_context(data_dir: Path, change_name: str, max_tokens: int | None = None) -> str:
     """Build a token-budgeted context dump for subagent injection.
 
     Includes: handoff + artifacts + config context.
     If max_tokens is set, truncates to approximate token budget (4 chars per token estimate).
     """
-    change_dir = project_root / "openspec" / "changes" / change_name
+    change_dir = data_dir / "changes" / change_name
     if not change_dir.is_dir():
         raise FileNotFoundError(f"Change '{change_name}' not found at {change_dir}")
 
     parts = []
 
     # Config context
-    config_path = project_root / "openspec" / "config.yaml"
+    config_path = data_dir / "config.yaml"
     if config_path.exists():
         config_content = config_path.read_text().strip()
         for line in config_content.split("\n"):

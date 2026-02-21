@@ -16,10 +16,7 @@ Capture lessons learned from a completed or archived change.
 
    If a name is provided, use it. Otherwise:
    - Run `devspec list --json` to get available changes
-   - Also check the archive directory for recently archived changes:
-     ```bash
-     ls -1d openspec/changes/archive/*/ 2>/dev/null | tail -10
-     ```
+   - Also check the archive directory for recently archived changes (in the project's global data store under `changes/archive/`)
    - Use the **AskUserQuestion tool** to let the user select
 
    Always announce: "Capturing lessons from: <name>"
@@ -31,11 +28,11 @@ Capture lessons learned from a completed or archived change.
    - Delta specs at `specs/`
    - Any other artifacts present
 
-   For archived changes, look in `openspec/changes/archive/<timestamp>-<name>/`.
+   For archived changes, look in the project's `changes/archive/<timestamp>-<name>/` directory.
 
 3. **Check for existing learnings**
 
-   Search `devspec/learnings/` for files where the `change` frontmatter field matches the change name.
+   Search the project's `learnings/` directory for files where the `change` frontmatter field matches the change name.
 
    **If a learning already exists:**
    - Display the existing learning to the user
@@ -70,14 +67,11 @@ Capture lessons learned from a completed or archived change.
 
 6. **Write the learning file**
 
-   Create the file at `devspec/learnings/<category>/<slug>.md`.
+   Create the file at `learnings/<category>/<slug>.md` in the project's global data store.
 
    The slug should be derived from the lesson title in kebab-case.
 
-   Create the category directory if it doesn't exist:
-   ```bash
-   mkdir -p devspec/learnings/<category>
-   ```
+   Create the category directory if it doesn't exist.
 
    **File format:**
 
@@ -110,7 +104,7 @@ Capture lessons learned from a completed or archived change.
 
    **Title:** <title>
    **Category:** <category>
-   **File:** devspec/learnings/<category>/<slug>.md
+   **File:** learnings/<category>/<slug>.md
    **Tags:** <tags>
 
    This learning will be surfaced by `/devspec-explore` and `/devspec-plan` when

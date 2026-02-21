@@ -1,20 +1,23 @@
-from pathlib import Path
-
 import click
 
+from devspec.core.resolve import resolve_project_data_dir
 from devspec.core.validator import validate_change_delta_specs, validate_spec_content
 
 
 @click.command()
 @click.argument("name", required=False)
-@click.option("--path", "project_path", default=".", help="Project root directory.")
-def validate(name: str | None, project_path: str) -> None:
+@click.option("--project", "project", default=None, help="Project name override.")
+def validate(name: str | None, project: str | None) -> None:
     """Validate specs or a specific change's delta specs."""
-    root = Path(project_path).resolve()
+    try:
+        data_dir = resolve_project_data_dir(project)
+    except FileNotFoundError as e:
+        click.echo(str(e))
+        raise SystemExit(1)
 
     if name:
         # Validate a specific change's delta specs
-        change_dir = root / "openspec" / "changes" / name
+        change_dir = data_dir / "changes" / name
         if not change_dir.exists():
             click.echo(f"Change not found: {name}")
             raise SystemExit(1)
@@ -25,9 +28,9 @@ def validate(name: str | None, project_path: str) -> None:
             raise SystemExit(1)
     else:
         # Validate all main specs
-        specs_dir = root / "openspec" / "specs"
+        specs_dir = data_dir / "specs"
         if not specs_dir.exists():
-            click.echo("No openspec/specs/ directory.")
+            click.echo("No specs/ directory.")
             raise SystemExit(1)
 
         all_valid = True

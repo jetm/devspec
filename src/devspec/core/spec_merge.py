@@ -221,15 +221,15 @@ def build_updated_spec(update: SpecUpdate, change_name: str) -> tuple[str, Merge
 
 
 def apply_specs(
-    project_root: Path,
+    data_dir: Path,
     change_name: str,
     *,
     dry_run: bool = False,
     skip_validation: bool = False,
 ) -> ApplyResult:
     """Find and apply all delta specs for a change, writing results unless dry_run."""
-    change_dir = project_root / "openspec" / "changes" / change_name
-    main_specs_dir = project_root / "openspec" / "specs"
+    change_dir = data_dir / "changes" / change_name
+    main_specs_dir = data_dir / "specs"
 
     if not change_dir.is_dir():
         raise FileNotFoundError(f"Change directory not found: {change_dir}")

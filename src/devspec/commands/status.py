@@ -1,9 +1,9 @@
 import json
-from pathlib import Path
 
 import click
 
 from devspec.core.graph import ArtifactGraph
+from devspec.core.resolve import resolve_project_data_dir
 from devspec.core.schema import load_schema
 from devspec.core.state import detect_completed
 
@@ -11,11 +11,16 @@ from devspec.core.state import detect_completed
 @click.command()
 @click.option("--change", "change_name", required=True, help="Change name.")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
-@click.option("--path", "project_path", default=".", help="Project root directory.")
-def status(change_name: str, as_json: bool, project_path: str) -> None:
+@click.option("--project", "project", default=None, help="Project name override.")
+def status(change_name: str, as_json: bool, project: str | None) -> None:
     """Show artifact completion status for a change."""
-    root = Path(project_path).resolve()
-    change_dir = root / "openspec" / "changes" / change_name
+    try:
+        data_dir = resolve_project_data_dir(project)
+    except FileNotFoundError as e:
+        click.echo(str(e))
+        raise SystemExit(1)
+
+    change_dir = data_dir / "changes" / change_name
 
     if not change_dir.exists():
         click.echo(f"Change not found: {change_name}")

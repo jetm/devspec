@@ -8,6 +8,7 @@ from devspec.commands.handoff import handoff
 from devspec.commands.init import init
 from devspec.commands.instructions import instructions
 from devspec.commands.list import list_changes
+from devspec.commands.migrate import migrate
 from devspec.commands.new import new
 from devspec.commands.status import status
 from devspec.commands.validate import validate
@@ -21,6 +22,7 @@ def cli():
 
 cli.add_command(analyze)
 cli.add_command(init)
+cli.add_command(migrate)
 cli.add_command(new)
 cli.add_command(status)
 cli.add_command(instructions)

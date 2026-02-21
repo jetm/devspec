@@ -1,20 +1,25 @@
 import json
 from dataclasses import asdict
-from pathlib import Path
 
 import click
 
 from devspec.core.analyzer import AnalysisReport, analyze_change
+from devspec.core.resolve import resolve_project_data_dir
 
 
 @click.command()
 @click.argument("name")
-@click.option("--path", "project_path", default=".", help="Project root directory.")
+@click.option("--project", "project", default=None, help="Project name override.")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
-def analyze(name: str, project_path: str, as_json: bool) -> None:
+def analyze(name: str, project: str | None, as_json: bool) -> None:
     """Analyze cross-artifact consistency for a change."""
-    root = Path(project_path).resolve()
-    change_dir = root / "openspec" / "changes" / name
+    try:
+        data_dir = resolve_project_data_dir(project)
+    except FileNotFoundError as e:
+        click.echo(str(e))
+        raise SystemExit(1)
+
+    change_dir = data_dir / "changes" / name
 
     if not change_dir.exists():
         click.echo(f"Change not found: {name}")

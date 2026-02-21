@@ -1,22 +1,26 @@
 import json
-from pathlib import Path
 
 import click
 
 from devspec.core.instructions import generate_instructions
+from devspec.core.resolve import resolve_project_data_dir
 
 
 @click.command()
 @click.argument("artifact_id")
 @click.option("--change", "change_name", required=True, help="Change name.")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
-@click.option("--path", "project_path", default=".", help="Project root directory.")
-def instructions(artifact_id: str, change_name: str, as_json: bool, project_path: str) -> None:
+@click.option("--project", "project", default=None, help="Project name override.")
+def instructions(artifact_id: str, change_name: str, as_json: bool, project: str | None) -> None:
     """Get enriched instructions for creating an artifact."""
-    root = Path(project_path).resolve()
+    try:
+        data_dir = resolve_project_data_dir(project)
+    except FileNotFoundError as e:
+        click.echo(str(e))
+        raise SystemExit(1)
 
     try:
-        bundle = generate_instructions(root, artifact_id, change_name)
+        bundle = generate_instructions(data_dir, artifact_id, change_name)
     except ValueError as e:
         click.echo(str(e))
         raise SystemExit(1)

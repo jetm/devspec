@@ -51,7 +51,7 @@ Archive a completed change.
 
 4. **Prompt for spec sync**
 
-   Check for delta specs at `devspec/changes/<name>/specs/`. If none exist, skip to archive.
+   Check for delta specs in the change's `specs/` directory. If none exist, skip to archive.
 
    **If delta specs exist:**
    - Note their presence to the user
@@ -69,13 +69,13 @@ Archive a completed change.
 
    After a successful archive, prompt the user to capture lessons from the change.
 
-   Use the **AskUserQuestion tool** to ask: "Capture lessons from this change? (This saves insights to `devspec/learnings/` for future reference)"
+   Use the **AskUserQuestion tool** to ask: "Capture lessons from this change? (This saves insights to the project's learnings directory for future reference)"
 
    **If the user accepts:**
    - Run the learning capture flow inline (same as `/devspec-learn`):
-     - Read the archived change's artifacts from `openspec/changes/archive/<timestamp>-<name>/`
+     - Read the archived change's artifacts from the archive directory
      - Guide the user through lesson extraction (see `/devspec-learn` skill for the full flow)
-     - Write the learning file to `devspec/learnings/<category>/<slug>.md`
+     - Write the learning file to the project's `learnings/<category>/<slug>.md` directory
    - Then proceed to the summary
 
    **If the user declines:**
@@ -88,7 +88,7 @@ Archive a completed change.
 
    **Change:** <change-name>
    **Schema:** <schema-name>
-   **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+   **Archived to:** changes/archive/YYYY-MM-DD-<name>/
    **Specs:** Synced / No delta specs / Sync skipped
    **Learnings:** Captured / Skipped
 

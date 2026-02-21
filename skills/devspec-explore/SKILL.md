@@ -84,15 +84,11 @@ If the user mentioned a specific change name, read its artifacts for context.
 
 ### Check for relevant learnings
 
-If `devspec/learnings/` exists and is not empty, search for learnings relevant to the exploration topic:
+Check the project's learnings directory (in the global data store under `learnings/`) for relevant prior lessons.
 
-```bash
-grep -rl "<topic keywords>" devspec/learnings/ 2>/dev/null
-```
+Search YAML frontmatter `tags` and `title` fields for keyword matches. If relevant learnings are found, mention them naturally as context early in the conversation - e.g., "There's a prior learning about <topic> from the <change-name> change that might be relevant."
 
-Also check YAML frontmatter `tags` and `title` fields for keyword matches. If relevant learnings are found, mention them naturally as context early in the conversation - e.g., "There's a prior learning about <topic> from the <change-name> change that might be relevant."
-
-Don't force learnings into the conversation if they aren't relevant. If `devspec/learnings/` doesn't exist, proceed without mentioning it.
+Don't force learnings into the conversation if they aren't relevant. If no learnings directory exists, proceed without mentioning it.
 
 ### When no change exists
 
@@ -107,10 +103,7 @@ Think freely. When insights crystallize, you might offer:
 If the user mentions a change or you detect one is relevant:
 
 1. **Read existing artifacts for context**
-   - `devspec/changes/<name>/proposal.md`
-   - `devspec/changes/<name>/design.md`
-   - `devspec/changes/<name>/tasks.md`
-   - etc.
+   Use `devspec context <name>` to get all artifacts, or `devspec handoff read <name>` for the full bundle.
 
 2. **Reference them naturally in conversation**
 

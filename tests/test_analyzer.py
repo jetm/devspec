@@ -332,7 +332,11 @@ Add auth.
         assert not any("session-mgmt" in i.message for i in term_issues)
 
     def test_short_terms_ignored(self, tmp_path):
-        proposal = "## Why\n\nTest.\n\n## What Changes\n\n- Use `db`\n\n## Capabilities\n\n### New Capabilities\n\n### Modified Capabilities\n\n## Impact\n\n- none\n"
+        proposal = (
+            "## Why\n\nTest.\n\n## What Changes\n\n- Use `db`\n\n"
+            "## Capabilities\n\n### New Capabilities\n\n"
+            "### Modified Capabilities\n\n## Impact\n\n- none\n"
+        )
         change = _make_change(tmp_path, proposal=proposal)
         (change / "tasks.md").write_text("- [ ] Do something\n")
         report = analyze_change(change)

@@ -15,7 +15,7 @@ class ArchiveResult:
 
 
 def archive_change(
-    project_root: Path,
+    data_dir: Path,
     change_name: str,
     *,
     skip_specs: bool = False,
@@ -32,7 +32,7 @@ def archive_change(
     6. Check target doesn't already exist
     7. Move change directory to archive
     """
-    changes_dir = project_root / "openspec" / "changes"
+    changes_dir = data_dir / "changes"
     change_dir = changes_dir / change_name
 
     if not change_dir.exists():
@@ -52,7 +52,7 @@ def archive_change(
         try:
             from devspec.core.spec_merge import apply_specs  # type: ignore[import-not-found]
 
-            apply_specs(project_root, change_name)
+            apply_specs(data_dir, change_name)
             specs_synced = True
         except Exception:
             pass

@@ -1,25 +1,27 @@
 import datetime
-import re
-from pathlib import Path
 
 import click
 import yaml
 
+from devspec.core.resolve import KEBAB_CASE_RE, resolve_project_data_dir
 from devspec.core.schema import load_schema
-
-KEBAB_CASE_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 @click.command()
 @click.argument("name")
-@click.option("--path", "project_path", default=".", help="Project root directory.")
-def new(name: str, project_path: str) -> None:
+@click.option("--project", "project", default=None, help="Project name override.")
+def new(name: str, project: str | None) -> None:
     """Create a new change directory."""
-    root = Path(project_path).resolve()
-    changes_dir = root / "openspec" / "changes"
+    try:
+        data_dir = resolve_project_data_dir(project)
+    except FileNotFoundError as e:
+        click.echo(str(e))
+        raise SystemExit(1)
+
+    changes_dir = data_dir / "changes"
 
     if not changes_dir.exists():
-        click.echo("No openspec/changes/ directory. Run `devspec init` first.")
+        click.echo("No changes/ directory. Run `devspec init` first.")
         raise SystemExit(1)
 
     if not name or not name.strip():
@@ -38,14 +40,14 @@ def new(name: str, project_path: str) -> None:
     schema = load_schema()
     change_dir.mkdir()
 
-    # Create .openspec.yaml metadata
+    # Create .devspec.yaml metadata
     meta = {"schema": schema.name, "created": datetime.date.today().isoformat()}
-    (change_dir / ".openspec.yaml").write_text(yaml.dump(meta, default_flow_style=False))
+    (change_dir / ".devspec.yaml").write_text(yaml.dump(meta, default_flow_style=False))
 
     # Create specs subdirectory
     (change_dir / "specs").mkdir()
 
     click.echo(f"Created change: {name}")
-    click.echo(f"  Directory: openspec/changes/{name}/")
+    click.echo(f"  Directory: changes/{name}/")
     click.echo(f"  Schema: {schema.name}")
     click.echo("  Next: create proposal.md")

@@ -11,16 +11,16 @@ from devspec.core.handoff import (
 
 @pytest.fixture
 def change_dir(tmp_path):
-    """Create a bare change directory."""
-    d = tmp_path / "openspec" / "changes" / "my-change"
+    """Create a bare change directory in global store layout."""
+    d = tmp_path / "data_dir" / "changes" / "my-change"
     d.mkdir(parents=True)
     return d
 
 
 @pytest.fixture
-def project_root(change_dir):
-    """Return the project root (grandparent of changes dir)."""
-    return change_dir.parent.parent.parent
+def data_dir(change_dir):
+    """Return the data_dir (parent of changes dir)."""
+    return change_dir.parent.parent
 
 
 class TestWriteHandoff:
@@ -100,45 +100,45 @@ class TestReadHandoffBundle:
 
 
 class TestBuildContext:
-    def test_valid_change(self, project_root):
-        change_dir = project_root / "openspec" / "changes" / "my-change"
+    def test_valid_change(self, data_dir):
+        change_dir = data_dir / "changes" / "my-change"
         write_handoff(change_dir, "handoff data")
-        result = build_context(project_root, "my-change")
+        result = build_context(data_dir, "my-change")
         assert "handoff data" in result
 
-    def test_nonexistent_change_raises(self, project_root):
+    def test_nonexistent_change_raises(self, data_dir):
         with pytest.raises(FileNotFoundError, match="no-such-change"):
-            build_context(project_root, "no-such-change")
+            build_context(data_dir, "no-such-change")
 
-    def test_token_truncation(self, project_root):
-        change_dir = project_root / "openspec" / "changes" / "my-change"
+    def test_token_truncation(self, data_dir):
+        change_dir = data_dir / "changes" / "my-change"
         write_handoff(change_dir, "x" * 10000)
-        result = build_context(project_root, "my-change", max_tokens=100)
+        result = build_context(data_dir, "my-change", max_tokens=100)
         # 100 tokens * 4 chars = 400 chars max before truncation marker
         assert "[... truncated to fit token budget ...]" in result
         # Content before marker should be roughly 400 chars
         truncated_content = result.split("\n\n[... truncated")[0]
         assert len(truncated_content) <= 500  # some overhead from headers
 
-    def test_no_truncation_within_budget(self, project_root):
-        change_dir = project_root / "openspec" / "changes" / "my-change"
+    def test_no_truncation_within_budget(self, data_dir):
+        change_dir = data_dir / "changes" / "my-change"
         write_handoff(change_dir, "short")
-        result = build_context(project_root, "my-change", max_tokens=10000)
+        result = build_context(data_dir, "my-change", max_tokens=10000)
         assert "[... truncated" not in result
 
-    def test_config_context(self, project_root):
-        config_path = project_root / "openspec" / "config.yaml"
+    def test_config_context(self, data_dir):
+        config_path = data_dir / "config.yaml"
         config_path.write_text("context: My awesome project\nother: stuff\n")
-        change_dir = project_root / "openspec" / "changes" / "my-change"
+        change_dir = data_dir / "changes" / "my-change"
         write_handoff(change_dir, "handoff")
-        result = build_context(project_root, "my-change")
+        result = build_context(data_dir, "my-change")
         assert "# Project Context" in result
         assert "My awesome project" in result
 
-    def test_no_config(self, project_root):
+    def test_no_config(self, data_dir):
         """build_context works fine without config.yaml."""
-        change_dir = project_root / "openspec" / "changes" / "my-change"
+        change_dir = data_dir / "changes" / "my-change"
         write_handoff(change_dir, "data")
-        result = build_context(project_root, "my-change")
+        result = build_context(data_dir, "my-change")
         assert "data" in result
         assert "Project Context" not in result

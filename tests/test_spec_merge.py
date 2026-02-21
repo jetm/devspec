@@ -464,66 +464,66 @@ class TestNoOperations:
 
 
 class TestApplySpecs:
-    def _setup_project(self, tmp_path: Path) -> Path:
-        """Create a project with openspec structure and a delta spec."""
-        project = tmp_path / "project"
-        change_dir = project / "openspec" / "changes" / "test-change" / "specs" / "my-cap"
+    def _setup_data_dir(self, tmp_path: Path) -> Path:
+        """Create a data_dir with changes and specs structure and a delta spec."""
+        data_dir = tmp_path / "data_dir"
+        change_dir = data_dir / "changes" / "test-change" / "specs" / "my-cap"
         change_dir.mkdir(parents=True)
         (change_dir / "spec.md").write_text(_make_delta_spec(added=[("Feature X", "The system SHALL do X.")]))
-        (project / "openspec" / "specs").mkdir(parents=True)
-        return project
+        (data_dir / "specs").mkdir(parents=True)
+        return data_dir
 
     def test_dry_run_does_not_write(self, tmp_path: Path):
-        project = self._setup_project(tmp_path)
+        data_dir = self._setup_data_dir(tmp_path)
 
-        result = apply_specs(project, "test-change", dry_run=True)
+        result = apply_specs(data_dir, "test-change", dry_run=True)
 
         assert isinstance(result, ApplyResult)
         assert result.change_name == "test-change"
         assert result.totals.added == 1
         assert not result.no_changes
         # Target should NOT exist
-        target = project / "openspec" / "specs" / "my-cap" / "spec.md"
+        target = data_dir / "specs" / "my-cap" / "spec.md"
         assert not target.exists()
 
     def test_writes_files(self, tmp_path: Path):
-        project = self._setup_project(tmp_path)
+        data_dir = self._setup_data_dir(tmp_path)
 
-        result = apply_specs(project, "test-change")
+        result = apply_specs(data_dir, "test-change")
 
         assert result.totals.added == 1
-        target = project / "openspec" / "specs" / "my-cap" / "spec.md"
+        target = data_dir / "specs" / "my-cap" / "spec.md"
         assert target.is_file()
         content = target.read_text()
         assert "### Requirement: Feature X" in content
 
     def test_no_specs_returns_no_changes(self, tmp_path: Path):
-        project = tmp_path / "project"
-        change_dir = project / "openspec" / "changes" / "empty-change"
+        data_dir = tmp_path / "data_dir"
+        change_dir = data_dir / "changes" / "empty-change"
         change_dir.mkdir(parents=True)
 
-        result = apply_specs(project, "empty-change")
+        result = apply_specs(data_dir, "empty-change")
 
         assert result.no_changes is True
 
     def test_change_not_found_raises(self, tmp_path: Path):
-        project = tmp_path / "project"
-        (project / "openspec" / "changes").mkdir(parents=True)
+        data_dir = tmp_path / "data_dir"
+        (data_dir / "changes").mkdir(parents=True)
 
         with pytest.raises(FileNotFoundError):
-            apply_specs(project, "nonexistent")
+            apply_specs(data_dir, "nonexistent")
 
     def test_modifies_existing_spec(self, tmp_path: Path):
-        project = tmp_path / "project"
-        main_cap = project / "openspec" / "specs" / "my-cap"
+        data_dir = tmp_path / "data_dir"
+        main_cap = data_dir / "specs" / "my-cap"
         main_cap.mkdir(parents=True)
         (main_cap / "spec.md").write_text(_make_main_spec("my-cap", [("Feature A", "Old body.")]))
 
-        change_dir = project / "openspec" / "changes" / "mod-change" / "specs" / "my-cap"
+        change_dir = data_dir / "changes" / "mod-change" / "specs" / "my-cap"
         change_dir.mkdir(parents=True)
         (change_dir / "spec.md").write_text(_make_delta_spec(modified=[("Feature A", "New body.")]))
 
-        result = apply_specs(project, "mod-change")
+        result = apply_specs(data_dir, "mod-change")
 
         assert result.totals.modified == 1
         content = (main_cap / "spec.md").read_text()

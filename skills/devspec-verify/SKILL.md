@@ -33,7 +33,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
    Read all available artifacts from the change directory:
    - proposal.md, design.md, tasks.md
-   - Delta specs at `devspec/changes/<name>/specs/`
+   - Delta specs in the change's `specs/` directory
    - Any other artifacts present
 
 4. **Verify Completeness**
