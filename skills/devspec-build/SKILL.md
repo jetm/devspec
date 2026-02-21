@@ -1,39 +1,36 @@
 ---
 name: "devspec-build"
 description: |
-  Implement tasks from a devspec change.
+  Implement tasks from a devspec change using parallel agent teams.
   Use when: "build change", "implement tasks", "devspec build", "start implementing".
-  Works through tasks sequentially, makes code changes, marks complete. Runs on sonnet via subagent.
-context: fork
-agent: devspec-worker
+  Spawns parallel devspec-worker agents for 3+ tasks; sequential for 1-2 tasks.
+allowed-tools: Read, Grep, Glob, Bash, Task, mcp__devspec__*, TaskCreate, TaskUpdate, TaskList, TeamCreate, TeamDelete, SendMessage
 ---
 
 Implement tasks from a devspec change.
 
-**Input**: A change name is required (passed as `$1`). If not provided, list changes and ask.
+**Input**: A change name is required (passed as ``). If not provided, list changes and ask.
 
 **Steps**
 
 1. **Select the change**
 
    If a name is provided, use it. Otherwise:
-   - Run `devspec list --json` to get available changes
+   - Call `mcp__devspec__devspec_list` to get available changes
    - Use the **AskUserQuestion tool** to let the user select
 
    Always announce: "Using change: <name>"
 
 2. **Check status**
-   ```bash
-   devspec status "<name>" --json
-   ```
-   Parse the JSON to understand:
+
+   Call `mcp__devspec__devspec_status` with the change name. Parse the result to understand:
    - `schemaName`: The workflow being used
    - Which artifact contains the tasks
    - Current artifact completion status
 
 3. **Read context files**
 
-   Read the tasks file and any other context artifacts (proposal, specs, design) listed in the change directory. Understand the full picture before implementing.
+   Read the tasks file and any other context artifacts (proposal, specs, design) from the change directory using the `devspec://changes/{name}/{artifact}` MCP resource. Understand the full picture before implementing.
 
 4. **Show current progress**
 
@@ -42,9 +39,17 @@ Implement tasks from a devspec change.
    - Progress: "N/M tasks complete"
    - Remaining tasks overview
 
-5. **Implement tasks (loop until done or blocked)**
+5. **Decide: team vs sequential**
 
-   For each pending task (marked `- [ ]` in tasks.md):
+   Count pending tasks (marked `- [ ]` in tasks.md).
+
+   **If 1-2 pending tasks**: implement sequentially (step 6a below).
+
+   **If 3+ pending tasks**: use agent team orchestration (step 6b below).
+
+6a. **Sequential implementation (1-2 tasks)**
+
+   For each pending task:
    - Show which task is being worked on
    - Make the code changes required
    - Keep changes minimal and focused
@@ -57,7 +62,52 @@ Implement tasks from a devspec change.
    - Error or blocker encountered -> report and wait for guidance
    - User interrupts
 
-6. **Review & Refactor (only when all tasks are complete)**
+   After all tasks complete, proceed to Review & Refactor (step 7).
+
+6b. **Agent team orchestration (3+ tasks)**
+
+   **Phase 1: Analyze dependencies**
+
+   Read tasks.md carefully. For each pending task, determine which other tasks must complete before it can start, based on semantic meaning:
+   - If task B references output, files, or components produced by task A -> B depends on A
+   - If tasks are in independent areas (different files, different capabilities) -> no dependency
+   - If unsure, prefer adding a dependency (safer) over allowing false parallelism
+
+   **Phase 2: Create task list**
+
+   Create a Claude Code TaskList using TaskCreate for each pending task. Set `blockedBy` relationships according to your dependency analysis.
+
+   **Phase 3: Create the team**
+
+   Create an agent team using TeamCreate with a descriptive name (e.g., `build-<change-name>`).
+
+   **Phase 4: Spawn workers**
+
+   For each independent task (no blockedBy, or all blockedBy tasks complete):
+   - Spawn a devspec-worker teammate using the Task tool
+   - Assign the task to that worker via TaskUpdate
+   - Pass each worker the full change context: change name, which task to implement, the task description, and the task's position in the overall task list
+
+   Workers implement their assigned task and mark it complete via TaskUpdate, then go idle.
+
+   **Phase 5: Coordinate merges and unblock dependents**
+
+   After each worker completes:
+   - Merge that worker's worktree changes into the main working tree
+   - Check TaskList for newly unblocked tasks
+   - Spawn new workers for tasks that just became unblocked
+
+   **Phase 6: Wait for all workers**
+
+   Wait for all tasks to reach `completed` status. Track progress and handle worker failures by reassigning tasks or running them sequentially as fallback.
+
+   **Phase 7: Shutdown the team**
+
+   Send shutdown requests to all teammates via SendMessage with type `shutdown_request`. Delete the team via TeamDelete.
+
+   After all workers complete, proceed to Review & Refactor (step 7).
+
+7. **Review & Refactor (only when all tasks are complete)**
 
    Skip this phase if the build paused due to a blocker, unclear task, or incomplete work. Only run when every task in tasks.md is marked `- [x]`.
 
@@ -84,8 +134,8 @@ Implement tasks from a devspec change.
    If changes were made, produce a "Review & Refactor" section listing each trimmed item with a brief rationale:
    ```
    ### Review & Refactor
-   - Inlined `_build_key()` at single call site in `lookup()` — removed helper
-   - Removed unused `format_debug()` — no callers after task 3 refactored logging
+   - Inlined `_build_key()` at single call site in `lookup()` - removed helper
+   - Removed unused `format_debug()` - no callers after task 3 refactored logging
    - Consolidated duplicate validation in `save()` and `update()` into shared path
 
    Trimmed 3 items. No tasks modified. No new code added.
@@ -97,7 +147,7 @@ Implement tasks from a devspec change.
    No unnecessary code found. No changes made.
    ```
 
-7. **On completion or pause, show status**
+8. **On completion or pause, show status**
 
    Display:
    - Tasks completed this session
@@ -133,8 +183,8 @@ Task complete
 ...
 
 ### Review & Refactor
-- Inlined `_build_key()` at single call site in `lookup()` — removed helper
-- Removed unused `format_debug()` — no callers after task 3 refactored logging
+- Inlined `_build_key()` at single call site in `lookup()` - removed helper
+- Removed unused `format_debug()` - no callers after task 3 refactored logging
 
 Trimmed 2 items. No tasks modified. No new code added.
 
@@ -167,3 +217,4 @@ What would you like to do?
 - Keep code changes minimal and scoped to each task
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements -- don't guess
+- For agent teams: fall through to sequential if team creation fails

@@ -11,11 +11,13 @@ license = "MIT"
 requires-python = ">=3.14"
 dependencies = [
     "click>=8.1",
+    "mcp>=1.0",
     "pyyaml>=6.0",
 ]
 
 [project.scripts]
 devspec = "devspec.cli:cli"
+devspec-mcp = "devspec.mcp.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

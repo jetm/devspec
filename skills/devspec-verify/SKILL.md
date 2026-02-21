@@ -4,7 +4,7 @@ description: |
   Verify implementation matches devspec change artifacts.
   Use when: "verify change", "devspec verify", "check implementation", "ready to archive?".
   Checks completeness, correctness, and coherence. Generates verification report. Runs inline at opus.
-allowed-tools: Read, Grep, Glob, Bash, Task
+allowed-tools: Read, Grep, Glob, Bash, Task, mcp__devspec__*
 ---
 
 Verify that an implementation matches the change artifacts (specs, tasks, design).
@@ -15,7 +15,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
 1. **If no change name provided, prompt for selection**
 
-   Run `devspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Call `mcp__devspec__devspec_list` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show changes that have implementation tasks (tasks artifact exists).
    Mark changes with incomplete tasks as "(In Progress)".
@@ -23,10 +23,8 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    **IMPORTANT**: Do NOT guess or auto-select a change. Always let the user choose.
 
 2. **Check status to understand the schema**
-   ```bash
-   devspec status "<name>" --json
-   ```
-   Parse the JSON to understand:
+
+   Call `mcp__devspec__devspec_status` with the change name. Parse the result to understand:
    - `schemaName`: The workflow being used
    - Which artifacts exist for this change
 

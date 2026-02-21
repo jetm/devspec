@@ -7,6 +7,7 @@ description: |
 disable-model-invocation: true
 context: fork
 agent: haiku-worker
+allowed-tools: Read, Bash, Task, mcp__devspec__*
 ---
 
 Archive a completed change.
@@ -17,7 +18,7 @@ Archive a completed change.
 
 1. **If no change name provided, prompt for selection**
 
-   Run `devspec list --json` to get available changes. Use the **AskUserQuestion tool** to let the user select.
+   Call `mcp__devspec__devspec_list` to get available changes. Use the **AskUserQuestion tool** to let the user select.
 
    Show only active changes (not already archived).
    Include the schema used for each change if available.
@@ -26,9 +27,9 @@ Archive a completed change.
 
 2. **Check artifact completion status**
 
-   Run `devspec status "<name>" --json` to check artifact completion.
+   Call `mcp__devspec__devspec_status` with the change name to check artifact completion.
 
-   Parse the JSON to understand:
+   Parse the result to understand:
    - `schemaName`: The workflow being used
    - `artifacts`: List of artifacts with their status (`done` or other)
 
@@ -62,9 +63,7 @@ Archive a completed change.
 
 5. **Perform the archive**
 
-   ```bash
-   devspec archive <name>
-   ```
+   Call `mcp__devspec__devspec_archive` with the change name.
 
 6. **Offer learning capture**
 

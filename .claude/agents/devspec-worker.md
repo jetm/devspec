@@ -3,6 +3,7 @@ name: devspec-worker
 description: Build agent for devspec task implementation. Accumulates project knowledge across sessions.
 model: sonnet
 memory: project
+isolation: worktree
 ---
 
 You are a devspec build agent implementing tasks from a change's tasks.md file.

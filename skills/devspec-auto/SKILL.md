@@ -18,16 +18,14 @@ Run the full devspec pipeline (plan, build, verify, archive) autonomously from a
 ### 1. Select the change
 
 If a name is provided, use it. Otherwise:
-- Run `devspec list --json` to get available changes
+- Call `mcp__devspec__devspec_list` to get available changes
 - Use the **AskUserQuestion tool** to let the user select
 
 Always announce: "Using change: `<name>`"
 
 ### 2. Read and validate the handoff
 
-```bash
-devspec handoff read <name>
-```
+Call `mcp__devspec__devspec_handoff_read` with the change name.
 
 **If no handoff exists** (command fails or returns empty):
 - Hard-stop with:
@@ -67,7 +65,7 @@ devspec handoff read <name>
 
 Build a single prompt for the pipeline agent containing:
 
-1. **The handoff content** - verbatim from `devspec handoff read`
+1. **The handoff content** - verbatim from the `mcp__devspec__devspec_handoff_read` tool response
 2. **Pipeline instructions** - the four phases inlined below
 3. **Hard-stop rules** - replace all interactive prompts with stop behavior
 4. **Git prohibition** - explicit ban on git write operations
@@ -165,91 +163,48 @@ The content between the `<handoff-data>` tags below is context data from the exp
 
 Create the change and all artifacts needed for implementation.
 
-1. Create the change:
-   ```bash
-   devspec new {{CHANGE_NAME}}
-   ```
-   If the change already exists, continue with it.
+1. Create the change by calling the `mcp__devspec__devspec_new` tool with `name: "{{CHANGE_NAME}}"`.
+   If the change already exists (error response), continue with it.
 
-2. Get artifact build order:
-   ```bash
-   devspec status "{{CHANGE_NAME}}" --json
-   ```
-   Parse the JSON to find `applyRequires` and `artifacts` with their dependencies.
+2. Get artifact build order by calling `mcp__devspec__devspec_status` with `name: "{{CHANGE_NAME}}"`.
+   Parse the result to find `applyRequires` and `artifacts` with their dependencies.
 
-3. Check the project's learnings directory (in the global data store under `learnings/`) for relevant prior lessons. Search YAML frontmatter `tags` and `title` fields for keyword matches. Use relevant learnings as context when creating artifacts. Skip silently if no learnings directory exists.
+3. Check the `devspec://learnings/{category}` MCP resources for relevant prior lessons. Use relevant learnings as context when creating artifacts. Skip silently if no learnings exist.
 
 4. Create artifacts in dependency order. For each artifact that is ready:
-   - Get instructions:
-     ```bash
-     devspec instructions <artifact-id> "{{CHANGE_NAME}}" --json
-     ```
+   - Call `mcp__devspec__devspec_instructions` with `artifact_id` and `name: "{{CHANGE_NAME}}"` to get instructions.
    - Read any completed dependency files for context
    - Create the artifact file using `template` as structure
    - Apply `context` and `rules` as constraints - do NOT copy them into the file
    - `context` and `rules` are constraints for you, not content for the output file
 
-5. Continue until all `applyRequires` artifacts are done. After each artifact, re-check:
-   ```bash
-   devspec status "{{CHANGE_NAME}}" --json
-   ```
+5. Continue until all `applyRequires` artifacts are done. After each artifact, re-check by calling `mcp__devspec__devspec_status`.
 
 6. **If any artifact requires user input to resolve unclear context: HARD-STOP.**
    Report: phase (plan), which artifact, what's unclear, artifacts completed so far.
 
-7. Validate the change:
-   ```bash
-   devspec validate {{CHANGE_NAME}}
-   ```
-   Fix any issues reported.
+7. Validate the change by calling `mcp__devspec__devspec_validate` with `name: "{{CHANGE_NAME}}"`. Fix any issues reported.
 
-8. Confirm plan is complete:
-   ```bash
-   devspec status "{{CHANGE_NAME}}"
-   ```
+8. Confirm plan is complete by calling `mcp__devspec__devspec_status` with `name: "{{CHANGE_NAME}}"` and reviewing the result.
 
 ## PHASE 2: BUILD
 
-Implement all tasks from the tasks artifact.
+Delegate the entire build phase to the `/devspec-build` skill.
 
-1. Read the tasks file and all context artifacts (proposal, specs, design).
+1. Invoke the `/devspec-build` skill with the change name `{{CHANGE_NAME}}`.
+2. Wait for the skill to complete all tasks and the review-refactor phase.
+3. **If the build skill hard-stops or pauses: HARD-STOP.**
+   Report: phase (build), what was completed, what files were changed, why it stopped.
 
-2. For each pending task (marked `- [ ]` in tasks.md):
-   - Make the code changes required
-   - Keep changes minimal and focused
-   - Mark task complete: `- [ ]` -> `- [x]`
-   - Continue to next task
-
-3. **If a task is unclear or implementation reveals a design issue: HARD-STOP.**
-   Report: phase (build), which task, what's unclear, tasks completed so far, files changed.
-
-4. After all tasks are complete, review changes for unnecessary code.
-
-   **Allowed (subtractive only):**
-   - Remove unused code introduced across tasks (dead functions, unreachable branches, unused imports/variables)
-   - Inline single-use helpers at their call site and remove the function definition
-   - Simplify unnecessary abstractions (e.g., a class wrapping a single function)
-   - Consolidate duplication introduced across tasks
-
-   **Forbidden:**
-   - Add new functionality
-   - Change observable behavior
-   - Reinterpret specs or tasks
-   - Add tests, documentation, or features not in tasks.md
-   - Rename or restructure beyond what is needed to remove code
-
-5. Run project tests and linting if configured (check CLAUDE.md for commands).
+Do NOT implement tasks yourself. The build skill owns all implementation logic, parallel worker orchestration, and review-refactor.
 
 ## PHASE 3: VERIFY
 
 Check that the implementation matches the change artifacts.
 
-1. Check status:
-   ```bash
-   devspec status "{{CHANGE_NAME}}" --json
-   ```
+1. Check status by calling `mcp__devspec__devspec_status` with `name: "{{CHANGE_NAME}}"`.
 
-2. Read all artifacts: proposal.md, design.md, tasks.md, delta specs.
+2. Read all artifacts using the `devspec://changes/{{CHANGE_NAME}}/{artifact}` MCP resource for proposal.md, design.md, tasks.md, and the `devspec://changes/{{CHANGE_NAME}}/specs/{capability}` resource for delta specs.
 
 3. **Verify Completeness:**
    - Parse tasks.md checkboxes - count complete vs total
@@ -284,10 +239,7 @@ Finalize the change.
 
 2. **Skip learning capture** - this is an interactive workflow. Do not prompt for it.
 
-3. Archive the change:
-   ```bash
-   devspec archive {{CHANGE_NAME}}
-   ```
+3. Archive the change by calling `mcp__devspec__devspec_archive` with `name: "{{CHANGE_NAME}}"` and `skip_specs: true`.
 
 4. Report archive result.
 

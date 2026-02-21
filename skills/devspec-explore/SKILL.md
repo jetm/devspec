@@ -4,7 +4,7 @@ description: |
   Enter explore mode for thinking through ideas and investigating problems.
   Use when: "explore", "think about", "investigate", "devspec explore", "what if".
   Interactive thinking partner. Read-only - no code changes. Runs inline at opus.
-allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task
+allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, mcp__devspec__*
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
@@ -71,10 +71,7 @@ You have full context of the devspec system. Use it naturally, don't force it.
 
 ### Check for context
 
-At the start, quickly check what exists:
-```bash
-devspec list --json
-```
+At the start, quickly check what exists using the `mcp__devspec__devspec_list` tool.
 
 This tells you:
 - If there are active changes
@@ -115,7 +112,7 @@ Think freely. When insights crystallize, you might offer:
 If the user mentions a change or you detect one is relevant:
 
 1. **Read existing artifacts for context**
-   Use `devspec context <name>` to get all artifacts, or `devspec handoff read <name>` for the full bundle.
+   Use `mcp__devspec__devspec_context` to get all artifacts, or `mcp__devspec__devspec_handoff_read` for the full bundle.
 
 2. **Reference them naturally in conversation**
 
@@ -178,11 +175,7 @@ can address them during artifact creation.
 
 ### Handoff
 
-If exploration leads to actionable work, write a handoff for other skills to pick up:
-
-```bash
-devspec handoff write <name>
-```
+If exploration leads to actionable work, write a handoff using the `mcp__devspec__devspec_handoff_write` tool with the change name and the handoff content as arguments.
 
 This captures the key insights and decisions from the exploration session so `/devspec-plan` can pick up where you left off.
 

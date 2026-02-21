@@ -5,6 +5,7 @@ description: |
   Use when: "capture lessons", "devspec learn", "what did we learn", "learning from change".
   Reads change artifacts, guides lesson extraction, writes to knowledge base. Runs inline at opus.
 disable-model-invocation: true
+allowed-tools: Read, Write, Glob, Bash, mcp__devspec__*
 ---
 
 Capture lessons learned from a completed or archived change.
@@ -16,7 +17,7 @@ Capture lessons learned from a completed or archived change.
 1. **Select the change**
 
    If a name is provided, use it. Otherwise:
-   - Run `devspec list --json` to get available changes
+   - Call `mcp__devspec__devspec_list` to get available changes
    - Also check the archive directory for recently archived changes (in the project's global data store under `changes/archive/`)
    - Use the **AskUserQuestion tool** to let the user select
 
@@ -33,7 +34,7 @@ Capture lessons learned from a completed or archived change.
 
 3. **Check for existing learnings**
 
-   Search the project's `learnings/` directory for files where the `change` frontmatter field matches the change name.
+   Use the `devspec://learnings/{category}` MCP resource to search categories, or read the project's `learnings/` directory for files where the `change` frontmatter field matches the change name.
 
    **If a learning already exists:**
    - Display the existing learning to the user
