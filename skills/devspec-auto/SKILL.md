@@ -167,7 +167,7 @@ Create the change and all artifacts needed for implementation.
 
 2. Get artifact build order:
    ```bash
-   devspec status --change "{{CHANGE_NAME}}" --json
+   devspec status "{{CHANGE_NAME}}" --json
    ```
    Parse the JSON to find `applyRequires` and `artifacts` with their dependencies.
 
@@ -176,7 +176,7 @@ Create the change and all artifacts needed for implementation.
 4. Create artifacts in dependency order. For each artifact that is ready:
    - Get instructions:
      ```bash
-     devspec instructions <artifact-id> --change "{{CHANGE_NAME}}" --json
+     devspec instructions <artifact-id> "{{CHANGE_NAME}}" --json
      ```
    - Read any completed dependency files for context
    - Create the artifact file using `template` as structure
@@ -185,7 +185,7 @@ Create the change and all artifacts needed for implementation.
 
 5. Continue until all `applyRequires` artifacts are done. After each artifact, re-check:
    ```bash
-   devspec status --change "{{CHANGE_NAME}}" --json
+   devspec status "{{CHANGE_NAME}}" --json
    ```
 
 6. **If any artifact requires user input to resolve unclear context: HARD-STOP.**
@@ -199,7 +199,7 @@ Create the change and all artifacts needed for implementation.
 
 8. Confirm plan is complete:
    ```bash
-   devspec status --change "{{CHANGE_NAME}}"
+   devspec status "{{CHANGE_NAME}}"
    ```
 
 ## PHASE 2: BUILD
@@ -240,7 +240,7 @@ Check that the implementation matches the change artifacts.
 
 1. Check status:
    ```bash
-   devspec status --change "{{CHANGE_NAME}}" --json
+   devspec status "{{CHANGE_NAME}}" --json
    ```
 
 2. Read all artifacts: proposal.md, design.md, tasks.md, delta specs.

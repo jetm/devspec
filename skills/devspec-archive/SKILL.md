@@ -25,7 +25,7 @@ Archive a completed change.
 
 2. **Check artifact completion status**
 
-   Run `devspec status --change "<name>" --json` to check artifact completion.
+   Run `devspec status "<name>" --json` to check artifact completion.
 
    Parse the JSON to understand:
    - `schemaName`: The workflow being used

@@ -20,6 +20,8 @@ Plan a change -- create all artifacts needed before implementation.
    ```
    If a handoff exists, use it as the starting context. If not, proceed with what the user provided.
 
+   Also check if Claude Code auto memory exists for this project (see `/devspec-memory` skill for path computation). If `MEMORY.md` is missing, briefly suggest: "Consider running `/devspec-memory` to populate project memory for future sessions." Don't block on this.
+
 2. **Create the change**
 
    If no change exists yet:
@@ -32,7 +34,7 @@ Plan a change -- create all artifacts needed before implementation.
 
 3. **Get the artifact build order**
    ```bash
-   devspec status --change "<name>" --json
+   devspec status "<name>" --json
    ```
    Parse the JSON to understand:
    - `applyRequires`: artifacts needed before implementation
@@ -55,7 +57,7 @@ Plan a change -- create all artifacts needed before implementation.
    a. **For each artifact that is `ready`**:
       - Get instructions:
         ```bash
-        devspec instructions <artifact-id> --change "<name>" --json
+        devspec instructions <artifact-id> "<name>" --json
         ```
       - The instructions JSON includes:
         - `context`: Project background (constraints for you -- do NOT include in output)
@@ -70,7 +72,7 @@ Plan a change -- create all artifacts needed before implementation.
       - Show brief progress: "Created <artifact-id>"
 
    b. **Continue until all `applyRequires` artifacts are complete**
-      - After creating each artifact, re-run `devspec status --change "<name>" --json`
+      - After creating each artifact, re-run `devspec status "<name>" --json`
       - Check if every artifact ID in `applyRequires` has `status: "done"`
       - Stop when all required artifacts are done
 
@@ -88,7 +90,7 @@ Plan a change -- create all artifacts needed before implementation.
 
 7. **Show final status**
    ```bash
-   devspec status --change "<name>"
+   devspec status "<name>"
    ```
 
 **Output**

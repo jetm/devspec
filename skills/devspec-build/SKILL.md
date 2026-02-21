@@ -24,7 +24,7 @@ Implement tasks from a devspec change.
 
 2. **Check status**
    ```bash
-   devspec status --change "<name>" --json
+   devspec status "<name>" --json
    ```
    Parse the JSON to understand:
    - `schemaName`: The workflow being used

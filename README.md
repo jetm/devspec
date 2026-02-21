@@ -2,7 +2,7 @@
 
 Spec-driven development workflow engine for Claude Code. Python rewrite of [OpenSpec](https://github.com/Fission-AI/OpenSpec)'s core engine — artifact graph, delta spec parser, spec merge engine, validator, and archive — in ~1,200 lines vs. OpenSpec's 17,000. Ships with 5 Claude Code skills for multi-model routing.
 
-Zero migration: reads and writes the existing `openspec/` directory format, so all your specs and archived changes work as-is.
+Includes a migration tool to convert from OpenSpec's `openspec/` directory format.
 
 ## Why fork?
 
@@ -38,7 +38,7 @@ devspec manages a **spec-driven development cycle**:
 explore → proposal → specs → design → tasks → implement → verify → archive
 ```
 
-Each change lives in `openspec/changes/<name>/` and produces artifacts in dependency order:
+Each change lives in the project's global data store (`~/.local/share/devspec/<project>/changes/<name>/`) and produces artifacts in dependency order:
 
 ```
 proposal  ──→  specs   ──→  tasks
@@ -51,11 +51,11 @@ Specs use **delta format** (ADDED/MODIFIED/REMOVED/RENAMED sections) that get me
 
 ```bash
 devspec analyze <name> [--json]                   # Cross-artifact consistency analysis
-devspec init                                    # Scaffold openspec/ directory
+devspec init                                    # Initialize project + global data directory
 devspec new <name>                              # Create a new change
-devspec status --change <name> [--json]         # Artifact completion status
+devspec status <name> [--json]                  # Artifact completion status
 devspec list [--json]                           # List active changes
-devspec instructions <artifact> --change <name> [--json]  # Enriched artifact template
+devspec instructions <artifact> <name> [--json] # Enriched artifact template
 devspec validate [<name>]                       # Validate specs or change deltas
 devspec archive <name> [--skip-specs] [--yes]   # Archive completed change
 devspec context <name> [--max-tokens N]         # Token-budgeted context dump
@@ -68,7 +68,7 @@ devspec handoff read <name>                     # Read handoff + all artifacts
 `--json` on `status`, `list`, and `instructions` outputs machine-readable JSON for skill consumption:
 
 ```bash
-$ devspec status --change add-auth --json
+$ devspec status add-auth --json
 {
   "schemaName": "spec-driven-custom",
   "isComplete": false,

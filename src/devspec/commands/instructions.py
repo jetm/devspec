@@ -8,11 +8,18 @@ from devspec.core.resolve import resolve_project_data_dir
 
 @click.command()
 @click.argument("artifact_id")
-@click.option("--change", "change_name", required=True, help="Change name.")
+@click.argument("name", required=False, default=None)
+@click.option("--change", "change_name", default=None, help="Change name (alternative to positional arg).")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
 @click.option("--project", "project", default=None, help="Project name override.")
-def instructions(artifact_id: str, change_name: str, as_json: bool, project: str | None) -> None:
+def instructions(
+    artifact_id: str, name: str | None, change_name: str | None, as_json: bool, project: str | None
+) -> None:
     """Get enriched instructions for creating an artifact."""
+    change_name = name or change_name
+    if not change_name:
+        click.echo("Usage: devspec instructions <artifact_id> <change_name> [--json]")
+        raise SystemExit(1)
     try:
         data_dir = resolve_project_data_dir(project)
     except FileNotFoundError as e:

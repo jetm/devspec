@@ -23,7 +23,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
 2. **Check status to understand the schema**
    ```bash
-   devspec status --change "<name>" --json
+   devspec status "<name>" --json
    ```
    Parse the JSON to understand:
    - `schemaName`: The workflow being used

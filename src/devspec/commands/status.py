@@ -9,11 +9,16 @@ from devspec.core.state import detect_completed
 
 
 @click.command()
-@click.option("--change", "change_name", required=True, help="Change name.")
+@click.argument("name", required=False, default=None)
+@click.option("--change", "change_name", default=None, help="Change name (alternative to positional arg).")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON.")
 @click.option("--project", "project", default=None, help="Project name override.")
-def status(change_name: str, as_json: bool, project: str | None) -> None:
+def status(name: str | None, change_name: str | None, as_json: bool, project: str | None) -> None:
     """Show artifact completion status for a change."""
+    change_name = name or change_name
+    if not change_name:
+        click.echo("Usage: devspec status <name> [--json]")
+        raise SystemExit(1)
     try:
         data_dir = resolve_project_data_dir(project)
     except FileNotFoundError as e:

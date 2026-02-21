@@ -1,6 +1,6 @@
 name: spec-driven-custom
 version: 1
-description: Default OpenSpec workflow - proposal → specs → design → tasks
+description: Default devspec workflow - proposal → specs → design → tasks
 artifacts:
   - id: proposal
     generates: proposal.md
@@ -26,7 +26,7 @@ artifacts:
          - Max 8 bullets
 
       4. Fill Capabilities:
-         - Research existing specs: `ls openspec/specs/`
+         - Research existing specs in the project's global data store (specs/ directory)
          - New Capabilities: one per new behavioral contract. Each becomes a new `specs/<name>/spec.md`. Use kebab-case names.
          - Modified Capabilities: only if REQUIREMENTS change (implementation-only changes don't need spec updates). Use exact kebab-case from existing specs. Leave empty if no requirement changes.
 
@@ -60,7 +60,7 @@ artifacts:
          - New capability -> specs/<name>/spec.md under ADDED Requirements
          - Modified capability -> specs/<name>/spec.md under MODIFIED Requirements
          Use the exact kebab-case name from the proposal for new capabilities.
-         Use the existing spec folder name from openspec/specs/<capability>/ for modifications.
+         Use the existing spec folder name from specs/<capability>/ for modifications.
 
       2. For each requirement:
          - Name: imperative verb phrase (e.g., "User can export data")
@@ -77,7 +77,7 @@ artifacts:
          - **CRITICAL**: Using 3 hashtags or bullets will fail silently.
 
       4. For MODIFIED requirements:
-         - Read existing spec: openspec/specs/<capability>/spec.md
+         - Read existing spec: specs/<capability>/spec.md (from the project's global data store)
          - Copy ENTIRE requirement block (### through all ####)
          - Paste under ## MODIFIED Requirements
          - Edit to reflect new behavior
