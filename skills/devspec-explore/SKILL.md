@@ -82,6 +82,17 @@ This tells you:
 
 If the user mentioned a specific change name, read its artifacts for context.
 
+### Check for auto memory
+
+Check if Claude Code's auto memory has been populated for this project:
+
+1. Find the project root (directory containing `.devspec` marker)
+2. Compute the memory path: take the absolute project root path, replace `/` with `-`, drop the leading `-`, then check `~/.claude/projects/<encoded-path>/memory/MEMORY.md`
+3. If `MEMORY.md` doesn't exist or is empty, mention it early:
+   "This project doesn't have Claude Code auto memory set up yet. Running `/devspec-memory` would give every future session a head start."
+
+Don't block on this - it's a suggestion, not a gate.
+
 ### Check for relevant learnings
 
 Check the project's learnings directory (in the global data store under `learnings/`) for relevant prior lessons.

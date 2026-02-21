@@ -53,3 +53,5 @@ def init(project_name: str | None) -> None:
     click.echo(f"Initialized project: {project_name}")
     click.echo(f"  Data: {data_dir}")
     click.echo(f"  Marker: {marker}")
+    click.echo()
+    click.echo("Next: run /devspec-memory to populate Claude Code auto memory for this project.")
