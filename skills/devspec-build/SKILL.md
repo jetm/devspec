@@ -8,8 +8,6 @@ context: fork
 agent: sonnet-worker
 ---
 
-!`devspec context $1`
-
 Implement tasks from a devspec change.
 
 **Input**: A change name is required (passed as `$1`). If not provided, list changes and ask.
@@ -59,7 +57,47 @@ Implement tasks from a devspec change.
    - Error or blocker encountered -> report and wait for guidance
    - User interrupts
 
-6. **On completion or pause, show status**
+6. **Review & Refactor (only when all tasks are complete)**
+
+   Skip this phase if the build paused due to a blocker, unclear task, or incomplete work. Only run when every task in tasks.md is marked `- [x]`.
+
+   Read through all changes made during implementation. Look for unnecessary code introduced across tasks and trim it.
+
+   **Allowed (subtractive only):**
+   - Remove unused code (dead functions, unreachable branches, unused imports/variables)
+   - Inline single-use helpers at their call site and remove the function definition
+   - Simplify unnecessary abstractions (e.g., a class wrapping a single function, an interface with one implementor)
+   - Clean up redundant error handling (e.g., duplicate try/catch, re-raising the same exception)
+   - Consolidate duplication introduced across tasks
+
+   **Forbidden:**
+   - Add new functionality
+   - Change observable behavior
+   - Reinterpret specs or tasks
+   - Add tests, documentation, or features not in tasks.md
+   - Rename or restructure beyond what is needed to remove code
+
+   For each change, preserve identical observable behavior -- same inputs produce same outputs, same errors raised, same side effects.
+
+   **Output:**
+
+   If changes were made, produce a "Review & Refactor" section listing each trimmed item with a brief rationale:
+   ```
+   ### Review & Refactor
+   - Inlined `_build_key()` at single call site in `lookup()` — removed helper
+   - Removed unused `format_debug()` — no callers after task 3 refactored logging
+   - Consolidated duplicate validation in `save()` and `update()` into shared path
+
+   Trimmed 3 items. No tasks modified. No new code added.
+   ```
+
+   If no changes were needed:
+   ```
+   ### Review & Refactor
+   No unnecessary code found. No changes made.
+   ```
+
+7. **On completion or pause, show status**
 
    Display:
    - Tasks completed this session
@@ -93,6 +131,12 @@ Task complete
 - [x] Task 1
 - [x] Task 2
 ...
+
+### Review & Refactor
+- Inlined `_build_key()` at single call site in `lookup()` — removed helper
+- Removed unused `format_debug()` — no callers after task 3 refactored logging
+
+Trimmed 2 items. No tasks modified. No new code added.
 
 All tasks complete! Run `/devspec-verify <name>` to check, then `/devspec-archive <name>`.
 ```

@@ -98,6 +98,23 @@ ln -s $(pwd)/skills/devspec-* ~/.claude/skills/
 | `/devspec-verify` | opus | inline | Verify implementation matches spec |
 | `/devspec-archive` | haiku | fork | Archive completed change |
 
+### Skill workflow
+
+```
+explore (opus) → plan (opus) → build (sonnet) → verify (opus) → archive (haiku)
+ thinking         artifacts      implementation    checking        finalizing
+```
+
+Different models for different demands: exploration and verification need deep reasoning (opus), implementation needs fast code generation (sonnet), archival is mechanical (haiku).
+
+### When to use each skill
+
+- **`/devspec-explore`** — You have a vague idea, want to investigate a problem, or need to think through tradeoffs before committing to a plan. Read-only — no code changes. Writes a `.handoff.md` when insights crystallize.
+- **`/devspec-plan`** — You know what to build and need formal artifacts (proposal, specs, design, tasks). Can start from a handoff left by explore, or from scratch.
+- **`/devspec-build`** — All planning artifacts are done. Time to write code. Works through tasks sequentially, marking each complete.
+- **`/devspec-verify`** — Implementation is done (or mostly done). Checks completeness, correctness, and coherence against specs before archiving.
+- **`/devspec-archive`** — Verification passed. Syncs delta specs to main specs and moves the change to archive.
+
 ### Handoff system
 
 Skills bridge context through `.handoff.md` files:
