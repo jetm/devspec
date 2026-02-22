@@ -47,6 +47,53 @@ devspec migrate [--repo PATH]                     # Migrate from openspec/ layou
 
 `--json` on `status`, `list`, `instructions`, and `analyze` outputs machine-readable JSON for skill consumption.
 
+## MCP Server
+
+devspec includes an MCP server (`devspec-mcp`) that exposes all operations as structured tool calls over stdio. This is how Claude Code skills interact with devspec.
+
+```bash
+devspec-mcp  # Starts MCP server on stdio
+```
+
+Add to `.claude/settings.json` to register:
+
+```json
+{
+  "mcpServers": {
+    "devspec": {
+      "command": "devspec-mcp"
+    }
+  }
+}
+```
+
+### Tools
+
+| Tool | Description |
+|------|-------------|
+| `devspec_list` | List active changes |
+| `devspec_new` | Create a new change |
+| `devspec_status` | Artifact completion status |
+| `devspec_instructions` | Enriched artifact template |
+| `devspec_context` | Token-budgeted context dump |
+| `devspec_validate` | Validate specs or change deltas |
+| `devspec_analyze` | Cross-artifact consistency analysis |
+| `devspec_handoff_read` | Read handoff + all artifacts |
+| `devspec_handoff_write` | Write context bridge |
+| `devspec_archive` | Archive completed change |
+| `devspec_task_mark` | Mark task complete/incomplete by index (MCP-only) |
+
+### Resources
+
+| Resource | Description |
+|----------|-------------|
+| `devspec://changes/` | List active changes |
+| `devspec://changes/{name}/{artifact}` | Read a change artifact |
+| `devspec://changes/{name}/specs/{capability}` | Read a delta spec |
+| `devspec://specs/{capability}` | Read a main spec |
+| `devspec://learnings/{category}` | Read learnings for a category |
+| `devspec://schema` | Read the workflow schema |
+
 ## Claude Code Skills
 
 8 skills in `skills/` - symlink to `~/.claude/skills/` to activate:
@@ -93,6 +140,7 @@ src/devspec/
 │   ├── graph.py           # Artifact dependency graph (Kahn's toposort)
 │   ├── state.py           # Completion detection (file existence + glob)
 │   ├── resolve.py         # Change/project name resolution
+│   ├── change.py          # Change creation + task checkbox toggling
 │   ├── delta_parser.py    # Parse ADDED/MODIFIED/REMOVED/RENAMED sections
 │   ├── spec_merge.py      # Apply deltas to main specs
 │   ├── analyzer.py        # Cross-artifact semantic consistency checks
@@ -101,6 +149,10 @@ src/devspec/
 │   ├── archive.py         # Validate -> sync specs -> move to archive
 │   └── handoff.py         # Context bridge for skill transitions
 ├── commands/              # Click CLI commands
+├── mcp/
+│   ├── server.py          # MCP server entry point (stdio transport)
+│   ├── tools.py           # Tool handlers for all devspec operations
+│   └── resources.py       # Resource handlers for read-only access
 └── data/
     ├── schema.yaml        # Hardcoded spec-driven workflow schema
     └── templates/         # Artifact templates (proposal, spec, design, tasks)
