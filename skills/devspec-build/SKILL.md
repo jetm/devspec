@@ -86,7 +86,7 @@ Implement tasks from a devspec change.
    For each independent task (no blockedBy, or all blockedBy tasks complete):
    - Spawn a devspec-worker teammate using the Task tool
    - Assign the task to that worker via TaskUpdate
-   - Pass each worker the full change context: change name, which task to implement, the task description, and the task's position in the overall task list
+   - Pass each worker **minimal context only**: the change name and their specific task number + description. Do NOT inline artifacts (proposal, specs, design, full task list) in the worker prompt. Workers read their own context via `mcp__devspec__devspec_context('<change-name>')`.
 
    Workers implement their assigned task and mark it complete via TaskUpdate, then go idle.
 
@@ -147,13 +147,21 @@ Implement tasks from a devspec change.
    No unnecessary code found. No changes made.
    ```
 
-8. **On completion or pause, show status**
+8. **On completion or pause**
 
-   Display:
-   - Tasks completed this session
-   - Overall progress: "N/M tasks complete"
-   - If all done: suggest verify and archive
-   - If paused: explain why and wait for guidance
+   **If paused**: display progress and explain why. Wait for guidance.
+
+   **If all tasks complete**: run verification automatically.
+
+   Spawn a verification sub-agent using the Task tool:
+   - `subagent_type`: `"general-purpose"`
+   - `prompt`: `"Read the verification skill at <skills-dir>/devspec-verify/SKILL.md and execute it for change '<change-name>'. Return the full verification report."`
+
+   Where `<skills-dir>` is the same directory this build skill was loaded from (its parent directory).
+
+   Display the verification report to the user. Based on the results:
+   - All clear: suggest `/devspec-archive <name>`
+   - Issues found: present them for the user to address
 
 **Output During Implementation**
 
@@ -188,7 +196,12 @@ Task complete
 
 Trimmed 2 items. No tasks modified. No new code added.
 
-All tasks complete! Run `/devspec-verify <name>` to check, then `/devspec-archive <name>`.
+Running verification...
+
+### Verification Report
+<report from verify sub-agent>
+
+Ready for `/devspec-archive <name>`.
 ```
 
 **Output On Pause**
