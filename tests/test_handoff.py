@@ -92,11 +92,46 @@ class TestReadHandoffBundle:
         spec_dir.mkdir(parents=True)
         (spec_dir / "spec.md").write_text("feat spec")
         bundle = read_handoff_bundle(change_dir)
-        assert "# Handoff" in bundle
+        # Handoff excluded because artifacts exist
+        assert "# Handoff" not in bundle
         assert "# proposal.md" in bundle
         assert "# specs/feat/spec.md" in bundle
         # Sections separated by ---
         assert "---" in bundle
+
+    def test_handoff_excluded_when_artifacts_exist(self, change_dir):
+        write_handoff(change_dir, "handoff text")
+        (change_dir / "proposal.md").write_text("proposal content")
+        bundle = read_handoff_bundle(change_dir)
+        assert "# Handoff" not in bundle
+        assert "handoff text" not in bundle
+        assert "# proposal.md" in bundle
+        assert "proposal content" in bundle
+
+    def test_handoff_excluded_with_partial_artifacts(self, change_dir):
+        write_handoff(change_dir, "handoff text")
+        (change_dir / "proposal.md").write_text("proposal only")
+        bundle = read_handoff_bundle(change_dir)
+        assert "# Handoff" not in bundle
+        assert "handoff text" not in bundle
+        assert "proposal only" in bundle
+
+    def test_handoff_excluded_when_only_specs_exist(self, change_dir):
+        write_handoff(change_dir, "handoff text")
+        spec_dir = change_dir / "specs" / "auth"
+        spec_dir.mkdir(parents=True)
+        (spec_dir / "spec.md").write_text("auth spec content")
+        bundle = read_handoff_bundle(change_dir)
+        assert "# Handoff" not in bundle
+        assert "handoff text" not in bundle
+        assert "# specs/auth/spec.md" in bundle
+        assert "auth spec content" in bundle
+
+    def test_handoff_included_when_no_artifacts(self, change_dir):
+        write_handoff(change_dir, "explore summary here")
+        bundle = read_handoff_bundle(change_dir)
+        assert "# Handoff" in bundle
+        assert "explore summary here" in bundle
 
 
 class TestBuildContext:

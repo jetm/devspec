@@ -25,18 +25,30 @@ def read_handoff_bundle(change_dir: Path) -> str:
     """Read handoff + all existing artifacts into a single context bundle.
 
     Returns a markdown document with:
-    - Handoff content (if exists)
+    - Handoff content (only when no artifact files exist yet)
     - All artifact files found in the change directory
     """
     parts = []
 
-    # Handoff
-    handoff = read_handoff(change_dir)
-    if handoff:
-        parts.append("# Handoff\n\n" + handoff)
+    # Check if any artifacts exist
+    artifact_files = ["proposal.md", "design.md", "tasks.md"]
+    artifacts_exist = any((change_dir / name).exists() for name in artifact_files)
+
+    # Also check for any specs/*/spec.md files
+    if not artifacts_exist:
+        specs_dir = change_dir / "specs"
+        if specs_dir.is_dir():
+            artifacts_exist = any(
+                (spec_dir / "spec.md").exists() for spec_dir in specs_dir.iterdir() if spec_dir.is_dir()
+            )
+
+    # Handoff - only include when no artifacts exist yet
+    if not artifacts_exist:
+        handoff = read_handoff(change_dir)
+        if handoff:
+            parts.append("# Handoff\n\n" + handoff)
 
     # Artifacts - check for standard files
-    artifact_files = ["proposal.md", "design.md", "tasks.md"]
     for name in artifact_files:
         path = change_dir / name
         if path.exists():

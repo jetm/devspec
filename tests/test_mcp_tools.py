@@ -226,9 +226,13 @@ class TestDevspecHandoffRead:
         result = devspec_handoff_read("test-change")
         assert "content" in result
 
-    def test_returns_handoff_content(self, data_dir, change_dir):
-        (change_dir / ".handoff.md").write_text("## Context\nsome context")
-        result = devspec_handoff_read("test-change")
+    def test_returns_handoff_content(self, data_dir):
+        # Use a bare change (no artifacts) so handoff is included in the bundle
+        bare_dir = data_dir / "changes" / "bare-change"
+        bare_dir.mkdir()
+        (bare_dir / ".devspec.yaml").write_text("schema: spec-driven-custom\ncreated: 2026-02-21\n")
+        (bare_dir / ".handoff.md").write_text("## Context\nsome context")
+        result = devspec_handoff_read("bare-change")
         assert "context" in result["content"].lower()
 
     def test_not_found_error(self, data_dir):

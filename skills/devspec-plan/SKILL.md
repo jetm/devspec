@@ -87,6 +87,7 @@ After completing all artifacts, summarize:
 - List of artifacts created with brief descriptions
 - What's ready: "All artifacts created! Ready for implementation."
 - Prompt: "Run `/devspec-build <name>` to start implementing."
+- Advisory: "Consider running `/compact` before `/devspec-build` to free context space."
 
 **Artifact Creation Guidelines**
 

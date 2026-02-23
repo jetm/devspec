@@ -179,6 +179,8 @@ If exploration leads to actionable work, write a handoff using the `mcp__devspec
 
 This captures the key insights and decisions from the exploration session so `/devspec-plan` can pick up where you left off.
 
+After writing the handoff, include this advisory in your completion output: _Consider running `/compact` before `/devspec-plan` to free context space._
+
 ---
 
 ## Research Dispatch

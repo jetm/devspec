@@ -89,6 +89,21 @@ class TestGetArtifact:
         assert result.startswith("Error:")
         assert "not found" in result.lower()
 
+    def test_reads_artifact_by_id(self, data_dir, change_dir):
+        result = get_artifact("test-change", "proposal")
+        assert "Test proposal content" in result
+
+    def test_reads_specs_directory(self, data_dir, change_dir):
+        result = get_artifact("test-change", "specs")
+        assert "ADDED Requirements" in result
+        assert "test-cap" in result
+
+    def test_empty_directory_returns_error(self, data_dir, change_dir):
+        (change_dir / "empty-dir").mkdir()
+        result = get_artifact("test-change", "empty-dir")
+        assert result.startswith("Error:")
+        assert "no markdown files" in result.lower()
+
 
 # -- get_delta_spec --
 

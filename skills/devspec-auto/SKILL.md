@@ -61,20 +61,20 @@ Call `mcp__devspec__devspec_handoff_read` with the change name.
   ```
 - Do NOT spawn the pipeline agent.
 
-### 3. Assemble the composite prompt
+### 3. Assemble the plan+build composite prompt
 
-Build a single prompt for the pipeline agent containing:
+Build a prompt for the plan+build agent containing:
 
 1. **The handoff content** - verbatim from the `mcp__devspec__devspec_handoff_read` tool response
-2. **Pipeline instructions** - the four phases inlined below
+2. **Plan and build instructions** - phases 1 and 2 inlined below
 3. **Hard-stop rules** - replace all interactive prompts with stop behavior
 4. **Git prohibition** - explicit ban on git write operations
 
-Use the template in the **Composite Prompt Template** section below.
+Use the template in the **Plan+Build Composite Prompt Template** section below.
 
-### 4. Spawn the pipeline agent
+### 4. Spawn the plan+build agent
 
-Spawn a single Task subagent with:
+Spawn a Task subagent with:
 - **subagent_type**: `general-purpose`
 - **mode**: `bypassPermissions`
 - **model**: `sonnet`
@@ -82,9 +82,59 @@ Spawn a single Task subagent with:
 
 Wait for the agent to complete.
 
-### 5. Report results
+**If the agent hard-stopped**, proceed directly to step 9 (final report) with plan+build status and no verify/archive results.
 
-Parse the agent's output and present a summary to the user:
+### 5. Spawn the verify agent
+
+Spawn a separate foreground Task subagent for verification:
+- **subagent_type**: `general-purpose`
+- **mode**: `bypassPermissions`
+- **model**: `sonnet`
+- **prompt**: The verify prompt from the **Verify Prompt Template** section below, with `{{CHANGE_NAME}}` replaced
+
+Wait for the agent to complete. Capture the verification report from its output.
+
+### 6. Assess verification results
+
+Parse the verify agent's output for CRITICAL issues.
+
+**If CRITICAL issues were found**, hard-stop before archive:
+```
+## Pipeline Stopped
+
+**Change:** <name>
+**Stopped at:** verify
+**Progress before stop:** plan complete, build complete, verify ran with critical issues
+
+### Reason
+Verification found critical issues that must be fixed before archiving.
+
+### Verification Report
+<full verification report from verify agent>
+
+### Files Changed So Far
+<list of files modified during build>
+
+### Options
+1. Fix the critical issues and re-run `/devspec-auto <name>` (resumes from current state)
+2. Continue manually with `/devspec-verify <name>` and `/devspec-archive <name>`
+```
+
+**If no CRITICAL issues**, proceed to archive.
+
+### 7. Spawn the archive agent
+
+Spawn a separate foreground Task subagent for archiving:
+- **subagent_type**: `general-purpose`
+- **mode**: `bypassPermissions`
+- **model**: `sonnet`
+- **prompt**: The archive prompt from the **Archive Prompt Template** section below, with `{{CHANGE_NAME}}` replaced
+
+Wait for the agent to complete.
+
+### 8. Collect and present the final report
+
+Parse outputs from all agents and present a summary:
 
 **If pipeline completed successfully:**
 ```
@@ -100,7 +150,7 @@ Parse the agent's output and present a summary to the user:
 - Archived change (archive phase)
 
 ### Verification Summary
-<verification findings from agent output>
+<verification findings from verify agent output>
 
 ### Files Changed
 <list of files modified during implementation>
@@ -129,9 +179,9 @@ All phases complete. Review unstaged changes with `git diff` and `git status`.
 
 ---
 
-## Composite Prompt Template
+## Plan+Build Composite Prompt Template
 
-The following is the prompt template passed to the Task subagent. Replace `{{HANDOFF_CONTENT}}` with the actual handoff output and `{{CHANGE_NAME}}` with the change name.
+The following is the prompt template passed to the plan+build Task subagent. Replace `{{HANDOFF_CONTENT}}` with the actual handoff output and `{{CHANGE_NAME}}` with the change name.
 
 <!-- INTENTIONAL DUPLICATION: This composite prompt is NOT a bug.
      The auto pipeline deliberately inlines modified versions of each skill phase
@@ -139,17 +189,16 @@ The following is the prompt template passed to the Task subagent. Replace `{{HAN
      with hard-stops. Using `skills:` preloading would inject the interactive versions,
      which would break autonomous execution.
      When source skills change, manually sync relevant changes here.
-     Derived from: devspec-plan@2026-02-21, devspec-build@2026-02-21,
-     devspec-verify@2026-02-21, devspec-archive@2026-02-21 -->
+     Derived from: devspec-plan@2026-02-21, devspec-build@2026-02-21 -->
 
 ````
-You are running the devspec pipeline autonomously. Execute all four phases in order. Do NOT skip phases. Do NOT ask the user anything - if something is unclear, hard-stop immediately.
+You are running the devspec plan+build phases autonomously. Execute both phases in order. Do NOT skip phases. Do NOT ask the user anything - if something is unclear, hard-stop immediately.
 
 ## CRITICAL RULES
 
 1. **NEVER perform git operations.** Do not run `git add`, `git commit`, `git push`, `git checkout`, `git stash`, or any other git write command. All file changes remain unstaged.
 2. **NEVER ask the user questions.** You are running autonomously. If you encounter ambiguity at any phase, hard-stop: report the phase, what's unclear, what was completed, and what files were changed, then STOP.
-3. **Execute phases sequentially.** Plan, then build, then verify, then archive. Do not skip or reorder.
+3. **Execute phases sequentially.** Plan, then build. Do not skip or reorder.
 
 ## HANDOFF CONTEXT
 
@@ -205,7 +254,48 @@ Implement all tasks from tasks.md sequentially.
    - Inline single-use helpers at their call site
    - Do NOT add new functionality, change observable behavior, or add tests not in tasks.md
 
-## PHASE 3: VERIFY
+## OUTPUT FORMAT
+
+When you finish (whether completed or hard-stopped), output a structured report:
+
+```
+## Plan+Build Result
+
+**Status:** completed | hard-stopped
+**Change:** {{CHANGE_NAME}}
+**Phases completed:** <list>
+**Stopped at:** <phase, if applicable>
+
+### Plan Summary
+<artifacts created>
+
+### Build Summary
+<tasks completed, files changed>
+
+### Stop Reason
+<if hard-stopped, what was unclear>
+```
+````
+
+---
+
+## Verify Prompt Template
+
+The following is the prompt template passed to the verify Task subagent. Replace `{{CHANGE_NAME}}` with the change name.
+
+<!-- NOTE: The verify sub-agent cannot spawn further sub-agents (no nesting allowed).
+     Domain review agents (`.claude/agents/review/*.md`) are noted but not dispatched. -->
+
+````
+You are running the devspec verify phase autonomously for change "{{CHANGE_NAME}}". Do NOT ask the user anything. Do NOT hard-stop on verification findings - findings are informational and the caller decides whether to proceed to archive.
+
+## CRITICAL RULES
+
+1. **NEVER perform git operations.**
+2. **NEVER ask the user questions.** Run all checks and report findings.
+3. **Do NOT hard-stop on findings.** Always complete the report.
+
+## PHASE: VERIFY
 
 Check that the implementation matches the change artifacts.
 
@@ -228,7 +318,7 @@ Check that the implementation matches the change artifacts.
 
 6. **Domain Review:**
    - Glob `.claude/agents/review/*.md` for review agent files
-   - If found, note their existence but skip dispatching sub-agents (you cannot spawn sub-agents)
+   - If found, note their existence but skip dispatching sub-agents (you cannot spawn sub-agents from within a sub-agent)
    - If not found, skip and note it was skipped
 
 7. Generate a verification report with:
@@ -236,15 +326,32 @@ Check that the implementation matches the change artifacts.
    - Issues by priority: CRITICAL, WARNING, SUGGESTION
    - Final assessment
 
-**Do NOT hard-stop on verification findings.** Warnings and suggestions are informational. Continue to archive.
+## OUTPUT FORMAT
 
-## PHASE 4: ARCHIVE
+Output the full verification report. The caller reads your output to determine next steps.
+````
+
+---
+
+## Archive Prompt Template
+
+The following is the prompt template passed to the archive Task subagent. Replace `{{CHANGE_NAME}}` with the change name.
+
+````
+You are running the devspec archive phase autonomously for change "{{CHANGE_NAME}}". Do NOT ask the user anything. Spec sync and learning capture are skipped - they require user interaction.
+
+## CRITICAL RULES
+
+1. **NEVER perform git operations.**
+2. **NEVER ask the user questions.** Execute the archive directly.
+
+## PHASE: ARCHIVE
 
 Finalize the change.
 
-1. **Skip spec sync** - this is an interactive workflow. Do not prompt for it.
+1. **Skip spec sync** - this is an autonomous workflow. Do not prompt for it.
 
-2. **Skip learning capture** - this is an interactive workflow. Do not prompt for it.
+2. **Skip learning capture** - this is an autonomous workflow. Do not prompt for it.
 
 3. Archive the change by calling `mcp__devspec__devspec_archive` with `name: "{{CHANGE_NAME}}"` and `skip_specs: true`.
 
@@ -252,30 +359,13 @@ Finalize the change.
 
 ## OUTPUT FORMAT
 
-When you finish (whether completed or hard-stopped), output a structured report:
-
 ```
-## Pipeline Result
+## Archive Result
 
-**Status:** completed | hard-stopped
 **Change:** {{CHANGE_NAME}}
-**Phases completed:** <list>
-**Stopped at:** <phase, if applicable>
-
-### Plan Summary
-<artifacts created>
-
-### Build Summary
-<tasks completed, files changed>
-
-### Verification Report
-<full verification report>
-
-### Archive
-<archive result or "not reached">
-
-### Stop Reason
-<if hard-stopped, what was unclear>
+**Status:** archived | failed
+**Archived to:** <path if successful>
+**Error:** <error message if failed>
 ```
 ````
 
@@ -284,9 +374,10 @@ When you finish (whether completed or hard-stopped), output a structured report:
 ## Guardrails
 
 - Always validate the handoff BEFORE spawning the agent - fail fast
-- The pipeline agent runs non-interactively - no user prompts at any phase
+- The plan+build agent runs non-interactively - no user prompts at any phase
+- Verify and archive run as separate foreground Task sub-agents from the top-level skill (not from within the composite subagent), giving each a clean context window
 - All file changes remain unstaged - never commit
 - Hard-stop is the only response to ambiguity - no guessing
-- Archive proceeds even with verification warnings - the user reviews before committing
+- Archive is skipped if verify finds CRITICAL issues - the user must fix and re-run
 - Spec sync and learning capture are skipped - they require user interaction
-- The pipeline agent runs with `bypassPermissions` - safety relies on the git prohibition, hard-stop rules, and handoff data fencing above. This is broader than the `context: fork` model used by individual skills.
+- All agents run with `bypassPermissions` - safety relies on the git prohibition, hard-stop rules, and handoff data fencing above. This is broader than the `context: fork` model used by individual skills.

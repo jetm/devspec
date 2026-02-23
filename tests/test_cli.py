@@ -329,7 +329,11 @@ class TestContext:
 
 class TestHandoff:
     def test_write_and_read(self, tmp_path, monkeypatch):
-        data_home, data_dir = _setup_change(tmp_path)
+        # Use a bare change (no artifacts) so the handoff is included in the bundle
+        data_home, data_dir = _setup_project(tmp_path)
+        change_dir = data_dir / "changes" / "test-change"
+        change_dir.mkdir()
+        (change_dir / ".devspec.yaml").write_text(yaml.dump({"schema": "spec-driven-custom", "created": "2026-02-19"}))
         monkeypatch.setenv("XDG_DATA_HOME", str(data_home))
         runner = CliRunner()
         # Write
@@ -341,7 +345,7 @@ class TestHandoff:
         assert result.exit_code == 0
         assert "Handoff written" in result.output
 
-        # Read
+        # Read - handoff included because no artifacts exist
         result = runner.invoke(cli, ["handoff", "read", "test-change", "--project", "test-proj"])
         assert result.exit_code == 0
         assert "Test problem" in result.output

@@ -74,7 +74,27 @@ def get_artifact(name: str, artifact: str) -> str:
     artifact_path = (change_dir / artifact).resolve()
     if not artifact_path.is_relative_to(change_dir.resolve()):
         return f"Error: Invalid artifact path: {artifact}"
+
+    # Fallback: try adding .md extension if path doesn't exist
+    if not artifact_path.exists() and not artifact.endswith(".md"):
+        md_path = artifact_path.with_suffix(".md")
+        if md_path.exists() and md_path.is_file():
+            artifact_path = md_path
+
+    # Directory handling: concatenate all .md files
+    if artifact_path.is_dir():
+        md_files = sorted(artifact_path.rglob("*.md"))
+        if not md_files:
+            return f"Error: No markdown files found in: {artifact}"
+        parts = []
+        for f in md_files:
+            rel = f.relative_to(artifact_path)
+            parts.append(f"# {rel}\n\n{f.read_text(encoding='utf-8')}")
+        return "\n\n---\n\n".join(parts)
+
     if not artifact_path.exists():
+        return f"Error: Artifact not found: {artifact}"
+    if not artifact_path.is_file():
         return f"Error: Artifact not found: {artifact}"
 
     return artifact_path.read_text(encoding="utf-8")
