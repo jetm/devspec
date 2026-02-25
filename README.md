@@ -1,6 +1,6 @@
 # devspec
 
-Spec-driven development workflow engine for Claude Code. Manages the full lifecycle of a change - explore, plan, build, verify, archive - through structured artifacts and multi-model routing. 8 Claude Code skills route each phase to the model that fits: opus for thinking, sonnet for implementation, haiku for cleanup.
+Spec-driven development workflow engine for Claude Code. Manages the full lifecycle of a change - explore, plan, build, verify, archive - through structured artifacts. 8 Claude Code skills cover each phase; none enforce a specific model, so the user picks the model at invocation time.
 
 Inspired by [OpenSpec](https://github.com/Fission-AI/OpenSpec) and GitHub's [spec-kit](https://github.com/github/spec-kit). Includes a migration tool to convert from OpenSpec's `openspec/` directory format.
 
@@ -22,8 +22,8 @@ explore -> plan -> build -> verify -> archive
 Each change lives in the project's global data store (`~/.local/share/devspec/<project>/changes/<name>/`) and produces artifacts in dependency order:
 
 ```
-proposal  -->  specs   -->  tasks
-              design  --/
+proposal --> specs -----> tasks
+     \-----> design --/
 ```
 
 Specs use **delta format** (ADDED/MODIFIED/REMOVED/RENAMED sections) that get merged into persistent main specs at archive time.
@@ -104,21 +104,23 @@ ln -s $(pwd)/skills/devspec-* ~/.claude/skills/
 
 ### Core pipeline
 
-| Skill | Model | Purpose |
-|-------|-------|---------|
-| `/devspec-explore` | opus | Thinking partner. Investigates problems, writes handoff |
-| `/devspec-plan` | opus | Create artifacts (proposal, specs, design, tasks) |
-| `/devspec-build` | sonnet | Implement tasks from tasks.md |
-| `/devspec-verify` | opus | Check implementation against specs |
-| `/devspec-archive` | haiku | Archive change, sync delta specs to main |
+| Skill | Purpose |
+|-------|---------|
+| `/devspec-explore` | Thinking partner. Investigates problems, writes handoff |
+| `/devspec-plan` | Create artifacts (proposal, specs, design, tasks) |
+| `/devspec-build` | Implement tasks from tasks.md |
+| `/devspec-verify` | Check implementation against specs |
+| `/devspec-archive` | Archive change, sync delta specs to main |
 
 ### Utility skills
 
-| Skill | Model | Purpose |
-|-------|-------|---------|
-| `/devspec-auto` | opus | Run full pipeline autonomously from a handoff |
-| `/devspec-learn` | opus | Capture lessons learned from a change |
-| `/devspec-memory` | opus | Generate Claude Code auto memory for a project |
+| Skill | Purpose |
+|-------|---------|
+| `/devspec-auto` | Run full pipeline autonomously from a handoff |
+| `/devspec-learn` | Capture lessons learned from a change |
+| `/devspec-memory` | Generate Claude Code auto memory for a project |
+
+No skill specifies a `model:` field - they all run at the current session model. `/devspec-auto` spawns all its sub-agents (plan+build, verify, archive) at sonnet.
 
 Skills bridge context through `.handoff.md` files: explore writes decisions, plan reads them, and build gets full context via `devspec context`.
 
@@ -138,14 +140,14 @@ src/devspec/
 ├── core/
 │   ├── schema.py          # YAML schema loader + validation
 │   ├── graph.py           # Artifact dependency graph (Kahn's toposort)
-│   ├── state.py           # Completion detection (file existence + glob)
+│   ├── state.py           # Completion detection + task progress tracking
 │   ├── resolve.py         # Change/project name resolution
-│   ├── change.py          # Change creation + task checkbox toggling
+│   ├── change.py          # Change creation
 │   ├── delta_parser.py    # Parse ADDED/MODIFIED/REMOVED/RENAMED sections
 │   ├── spec_merge.py      # Apply deltas to main specs
 │   ├── analyzer.py        # Cross-artifact semantic consistency checks
 │   ├── validator.py       # SHALL/MUST, scenario, cross-section validation
-│   ├── instructions.py    # Template enrichment with context/rules
+│   ├── instructions.py    # Template + dependency bundling for artifacts
 │   ├── archive.py         # Validate -> sync specs -> move to archive
 │   └── handoff.py         # Context bridge for skill transitions
 ├── commands/              # Click CLI commands
