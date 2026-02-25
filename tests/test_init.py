@@ -1,4 +1,3 @@
-import yaml
 from click.testing import CliRunner
 
 from devspec.cli import cli
@@ -18,8 +17,6 @@ class TestInit:
         assert (data_dir / "changes").is_dir()
         assert (data_dir / "changes" / "archive").is_dir()
         assert (data_dir / "learnings").is_dir()
-        config = yaml.safe_load((data_dir / "config.yaml").read_text())
-        assert config["schema"] == "spec-driven-custom"
 
     def test_creates_marker_file(self, tmp_path, monkeypatch):
         monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))

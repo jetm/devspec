@@ -121,32 +121,6 @@ def test_generate_instructions_basic(tmp_project: Path):
     assert bundle.instruction != ""
     assert bundle.output_path == "proposal.md"
     assert bundle.dependencies == {}
-    assert bundle.context == ""
-    assert bundle.rules == []
-
-
-def test_generate_instructions_with_context(tmp_project: Path):
-    change_dir = tmp_project / "changes" / "my-change"
-    change_dir.mkdir(parents=True)
-
-    config_path = tmp_project / "config.yaml"
-    config_path.write_text("context: This is a CLI tool for spec management.\n")
-
-    bundle = generate_instructions(tmp_project, "proposal", "my-change")
-    assert bundle.context == "This is a CLI tool for spec management."
-
-
-def test_generate_instructions_with_rules(tmp_project: Path):
-    change_dir = tmp_project / "changes" / "my-change"
-    change_dir.mkdir(parents=True)
-
-    config_path = tmp_project / "config.yaml"
-    config_path.write_text(
-        "rules:\n  proposal:\n    - Keep proposals under 500 words\n    - Focus on user-facing changes\n"
-    )
-
-    bundle = generate_instructions(tmp_project, "proposal", "my-change")
-    assert bundle.rules == ["Keep proposals under 500 words", "Focus on user-facing changes"]
 
 
 def test_generate_instructions_reads_dependencies(tmp_project: Path):

@@ -16,7 +16,6 @@ def _setup_project(tmp_path: Path, project_name: str = "test-proj") -> tuple[Pat
     (data_dir / "changes").mkdir()
     (data_dir / "changes" / "archive").mkdir()
     (data_dir / "learnings").mkdir()
-    (data_dir / "config.yaml").write_text(yaml.dump({"schema": "spec-driven-custom"}))
     return data_home, data_dir
 
 

@@ -73,7 +73,7 @@ def read_handoff_bundle(change_dir: Path) -> str:
 def build_context(data_dir: Path, change_name: str, max_tokens: int | None = None) -> str:
     """Build a token-budgeted context dump for subagent injection.
 
-    Includes: handoff + artifacts + config context.
+    Includes: handoff + artifacts.
     If max_tokens is set, truncates to approximate token budget (4 chars per token estimate).
     """
     change_dir = data_dir / "changes" / change_name
@@ -81,15 +81,6 @@ def build_context(data_dir: Path, change_name: str, max_tokens: int | None = Non
         raise FileNotFoundError(f"Change '{change_name}' not found at {change_dir}")
 
     parts = []
-
-    # Config context
-    config_path = data_dir / "config.yaml"
-    if config_path.exists():
-        config_content = config_path.read_text().strip()
-        for line in config_content.split("\n"):
-            if line.startswith("context:"):
-                parts.append("# Project Context\n\n" + line.split(":", 1)[1].strip())
-                break
 
     # Bundle all artifacts
     bundle = read_handoff_bundle(change_dir)

@@ -2,8 +2,6 @@ import importlib.resources
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
-
 from devspec.core.schema import load_schema
 
 
@@ -14,8 +12,6 @@ class InstructionBundle:
     instruction: str
     output_path: str
     dependencies: dict[str, str] = field(default_factory=dict)
-    context: str = ""
-    rules: list[str] = field(default_factory=list)
 
 
 def generate_instructions(
@@ -47,17 +43,6 @@ def generate_instructions(
     else:
         output_path = generates
 
-    # Load config.yaml for context and rules
-    context = ""
-    rules: list[str] = []
-    config_path = data_dir / "config.yaml"
-    if config_path.exists():
-        raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-        context = raw.get("context", "")
-        artifact_rules = raw.get("rules", {})
-        if artifact_id in artifact_rules:
-            rules = artifact_rules[artifact_id]
-
     # Read dependency content from change directory
     change_dir = data_dir / "changes" / change_name
     dependencies: dict[str, str] = {}
@@ -83,6 +68,4 @@ def generate_instructions(
         instruction=artifact.instruction,
         output_path=output_path,
         dependencies=dependencies,
-        context=context,
-        rules=rules,
     )

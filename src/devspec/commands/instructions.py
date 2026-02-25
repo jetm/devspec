@@ -39,8 +39,6 @@ def instructions(
             "instruction": bundle.instruction,
             "outputPath": bundle.output_path,
             "dependencies": bundle.dependencies,
-            "context": bundle.context,
-            "rules": bundle.rules,
         }
         click.echo(json.dumps(data, indent=2))
     else:
@@ -52,12 +50,3 @@ def instructions(
         click.echo()
         click.echo("--- Instruction ---")
         click.echo(bundle.instruction)
-        if bundle.context:
-            click.echo()
-            click.echo("--- Context ---")
-            click.echo(bundle.context)
-        if bundle.rules:
-            click.echo()
-            click.echo("--- Rules ---")
-            for rule in bundle.rules:
-                click.echo(f"  - {rule}")

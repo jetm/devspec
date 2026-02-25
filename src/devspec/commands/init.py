@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 
 import click
-import yaml
 
 from devspec.core.resolve import KEBAB_CASE_RE, MARKER_FILE, get_data_root
 
@@ -43,9 +42,6 @@ def init(project_name: str | None) -> None:
     (data_dir / "changes").mkdir()
     (data_dir / "changes" / "archive").mkdir()
     (data_dir / "learnings").mkdir()
-
-    config = {"schema": "spec-driven-custom"}
-    (data_dir / "config.yaml").write_text(yaml.dump(config, default_flow_style=False))
 
     # Create marker file in cwd
     marker.write_text(project_name + "\n")

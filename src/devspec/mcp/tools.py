@@ -167,8 +167,6 @@ def devspec_instructions(artifact_id: str, name: str, project: str | None = None
         "instruction": bundle.instruction,
         "outputPath": bundle.output_path,
         "dependencies": bundle.dependencies,
-        "context": bundle.context,
-        "rules": bundle.rules,
     }
 
 

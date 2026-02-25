@@ -161,19 +161,9 @@ class TestBuildContext:
         result = build_context(data_dir, "my-change", max_tokens=10000)
         assert "[... truncated" not in result
 
-    def test_config_context(self, data_dir):
-        config_path = data_dir / "config.yaml"
-        config_path.write_text("context: My awesome project\nother: stuff\n")
-        change_dir = data_dir / "changes" / "my-change"
-        write_handoff(change_dir, "handoff")
-        result = build_context(data_dir, "my-change")
-        assert "# Project Context" in result
-        assert "My awesome project" in result
-
     def test_no_config(self, data_dir):
         """build_context works fine without config.yaml."""
         change_dir = data_dir / "changes" / "my-change"
         write_handoff(change_dir, "data")
         result = build_context(data_dir, "my-change")
         assert "data" in result
-        assert "Project Context" not in result
