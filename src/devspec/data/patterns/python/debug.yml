@@ -1,0 +1,38 @@
+rules:
+  - id: python-debug-print
+    language: Python
+    rule:
+      pattern: print($$$ARGS)
+    message: "Debug print() statement found. Remove before committing."
+    severity: warning
+    note: |
+      print() in non-CLI code is usually a debug artifact left from development.
+      Use logging instead, or remove if temporary.
+
+  - id: python-debug-breakpoint
+    language: Python
+    rule:
+      pattern: breakpoint()
+    message: "breakpoint() call found. Remove before committing."
+    severity: error
+
+  - id: python-debug-pdb-set-trace
+    language: Python
+    rule:
+      pattern: pdb.set_trace()
+    message: "pdb.set_trace() call found. Remove before committing."
+    severity: error
+
+  - id: python-debug-pdb-pm
+    language: Python
+    rule:
+      pattern: pdb.pm()
+    message: "pdb.pm() call found. Remove before committing."
+    severity: error
+
+  - id: python-debug-icecream
+    language: Python
+    rule:
+      pattern: ic($$$ARGS)
+    message: "ic() (icecream) debug call found. Remove before committing."
+    severity: warning

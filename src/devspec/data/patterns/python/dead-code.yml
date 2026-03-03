@@ -1,0 +1,35 @@
+rules:
+  - id: python-dead-code-empty-except
+    language: Python
+    rule:
+      kind: except_clause
+      has:
+        kind: block
+        has:
+          kind: pass_statement
+        not:
+          has:
+            any:
+              - kind: expression_statement
+              - kind: return_statement
+              - kind: raise_statement
+              - kind: if_statement
+              - kind: assignment
+    message: "Empty except block with only 'pass' - silently swallows exceptions."
+    severity: warning
+    note: |
+      Bare except blocks that only pass swallow exceptions silently.
+      Add at minimum a logging call, or re-raise the exception.
+
+  - id: python-dead-code-bare-except
+    language: Python
+    rule:
+      kind: except_clause
+      not:
+        has:
+          kind: type
+    message: "Bare 'except:' clause catches all exceptions including SystemExit and KeyboardInterrupt."
+    severity: warning
+    note: |
+      Use 'except Exception:' to catch only application-level exceptions,
+      or specify the exact exception types you intend to handle.

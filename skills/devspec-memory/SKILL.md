@@ -138,6 +138,41 @@ After generating memory files, quickly compare with CLAUDE.md:
 - If CLAUDE.md references docs that aren't summarized in memory, consider adding key points
 - Memory should complement CLAUDE.md, not repeat it
 
+### 5.5. Quality Analysis
+
+After cross-referencing, run a self-validation pass on the generated MEMORY.md. All findings are advisory suggestions - report them but do not block generation.
+
+**Content positioning check:**
+
+Count total lines. Identify lines containing critical keywords: `rules`, `constraints`, `MUST`, `ALWAYS`, `NEVER`, `WARNING`. If any critical keyword lines fall in the middle 60% of the file (lines 21%-80% of total), suggest: "Consider moving critical content to start or end of file (lost-in-the-middle risk)."
+
+**Instruction effectiveness checks:**
+
+Scan generated content for:
+- Negative-only instructions (lines with "don't", "never", "avoid" but no "use", "do", "prefer"): suggest "Rephrase as positive instruction - say what TO do"
+- Weak constraint language on critical rules (lines with critical keywords that use "should", "try to", "consider" rather than "MUST"/"ALWAYS"): suggest "Strengthen to MUST/ALWAYS for critical rules"
+- Rules without rationale (imperative sentences with no explanatory follow-up): suggest "Add rationale - rules with reasons improve compliance"
+
+**Reference validation:**
+
+Extract file paths (patterns: `` `src/...` ``, `` `path/to/file` ``, markdown links) and check each with Glob. If a referenced path does not exist, emit: "Reference to `<path>` - file not found."
+
+Extract command references (lines with `` `uv run` ``, `` `npm` ``, `` `make` ``, `` `cargo` ``, `` `go ` ``) and check against project config:
+- `uv run` - confirm `pyproject.toml` exists
+- `npm` - confirm `package.json` exists
+- `make` - confirm `Makefile` exists
+- `cargo` - confirm `Cargo.toml` exists
+- `go ` - confirm `go.mod` exists
+
+If a config file is missing, emit: "Command `<cmd>` referenced but `<config>` not found."
+
+**Token estimation:**
+
+Count characters in MEMORY.md. Divide by 4 for estimated tokens. Count lines.
+
+- If estimated tokens > 1500: emit "Estimated N tokens - exceeds 1500 token budget. Consider trimming."
+- Always report: "Estimated tokens: N | Lines: L/190"
+
 ### 6. Report results
 
 ```
@@ -162,6 +197,10 @@ After generating memory files, quickly compare with CLAUDE.md:
 - [x] Code conventions
 - [x] Development commands
 - [ ] <anything skipped and why>
+
+### Quality Analysis:
+- Estimated tokens: N | Lines: L/190
+- <suggestion or "all checks passed">
 
 Run `/devspec-memory` again anytime to refresh after significant changes.
 ```

@@ -1,0 +1,33 @@
+rules:
+  - id: shell-debug-echo
+    language: Bash
+    rule:
+      kind: command
+      has:
+        kind: command_name
+        regex: "^echo$"
+      has:
+        kind: string
+        regex: "(?i)(debug|trace|xxx|FIXME)"
+    message: "Debug echo statement detected. Remove before committing."
+    severity: warning
+    note: |
+      Echo statements with debug/trace markers are development artifacts.
+      Remove them or replace with proper logging.
+
+  - id: shell-debug-set-x
+    language: Bash
+    rule:
+      pattern: set -x
+    message: "set -x (trace mode) left enabled. Remove before committing."
+    severity: error
+    note: |
+      set -x enables shell trace output for every command.
+      This should not be left on in production scripts.
+
+  - id: shell-debug-set-verbose
+    language: Bash
+    rule:
+      pattern: set -v
+    message: "set -v (verbose mode) left enabled. Remove before committing."
+    severity: warning

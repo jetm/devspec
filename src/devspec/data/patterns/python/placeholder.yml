@@ -1,0 +1,69 @@
+rules:
+  - id: python-placeholder-pass-function
+    language: Python
+    rule:
+      kind: function_definition
+      has:
+        kind: block
+        has:
+          kind: pass_statement
+        not:
+          has:
+            any:
+              - kind: expression_statement
+              - kind: return_statement
+              - kind: raise_statement
+              - kind: if_statement
+              - kind: for_statement
+              - kind: while_statement
+              - kind: with_statement
+              - kind: try_statement
+              - kind: assert_statement
+              - kind: assignment
+    message: "Function body is only 'pass' - placeholder function detected."
+    severity: warning
+    note: |
+      A function with only 'pass' is likely unimplemented. Either implement it
+      or add a proper NotImplementedError with a message.
+
+  - id: python-placeholder-ellipsis-function
+    language: Python
+    rule:
+      kind: function_definition
+      has:
+        kind: block
+        has:
+          kind: expression_statement
+          has:
+            kind: ellipsis
+        not:
+          has:
+            any:
+              - kind: return_statement
+              - kind: raise_statement
+              - kind: if_statement
+              - kind: for_statement
+              - kind: while_statement
+              - kind: assignment
+    message: "Function body is only '...' (ellipsis) - placeholder function detected."
+    severity: warning
+    note: |
+      Ellipsis-only function bodies are common placeholders in stubs or drafts.
+      Implement the function body before shipping.
+
+  - id: python-placeholder-not-implemented
+    language: Python
+    rule:
+      pattern: raise NotImplementedError
+    message: "raise NotImplementedError found - placeholder code detected."
+    severity: warning
+    note: |
+      NotImplementedError should only appear in abstract base class methods.
+      If this is a concrete implementation, replace with actual logic.
+
+  - id: python-placeholder-not-implemented-msg
+    language: Python
+    rule:
+      pattern: raise NotImplementedError($MSG)
+    message: "raise NotImplementedError found - placeholder code detected."
+    severity: warning

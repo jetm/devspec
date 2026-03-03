@@ -35,7 +35,35 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    - Delta specs in the change's `specs/` directory
    - Any other artifacts present
 
-4. **Verify Completeness**
+4. **Pre-Flight Checks**
+
+   Run deterministic checks before LLM analysis. If a tool fails or exceeds 60s, skip it and note in results - never block LLM analysis.
+
+   **Test Runner** - detect and run in order:
+   - `pyproject.toml` + `uv` available → `uv run pytest` (capture pass/fail count + exit code)
+   - `pytest` on PATH → `pytest` (capture pass/fail count + exit code)
+   - `Makefile` with `test` target → `make test` (capture exit code)
+   - `Cargo.toml` exists → `cargo test` (capture exit code + summary)
+   - `go.mod` exists → `go test ./...` (capture exit code + summary)
+   - None found → note "No test runner detected"
+
+   **Linter** - run only linters already configured in the project, on modified files only:
+   - `[tool.ruff]` in `pyproject.toml` or `ruff.toml` exists → `ruff check <modified .py files>`
+   - Modified files include `.sh` or `.bash` and `shellcheck` on PATH → `shellcheck <each file>`
+   - Modified files include `.c`, `.cpp`, `.h`, `.hpp` and `gcc`/`clang` available → syntax-only check (`-fsyntax-only`)
+
+   **AST Structural Checks** - run when ast-grep is available:
+   - Verify ast-grep: `sg --version 2>&1 | grep -q ast-grep` (note: `/usr/bin/sg` on Linux is `newgrp`, not ast-grep)
+   - Detect modified file languages; find matching rule files in `src/devspec/data/patterns/<lang>/`
+   - Run each rule file individually: `for rule in src/devspec/data/patterns/<lang>/*.yml; do sg scan --rule "$rule" <modified files>; done`
+   - If `sg` is not ast-grep or not on PATH → skip and note "AST checks skipped (ast-grep not available)"
+
+   **Certainty Grading** - apply to all findings:
+   - **HIGH**: definitive failure - test suite exits non-zero, syntax error, linter error
+   - **MEDIUM**: warning or probable issue - linter warning, ast-grep warning-level match
+   - **LOW**: heuristic suggestion - pattern-based, needs context to confirm
+
+5. **Verify Completeness**
 
    **Task Completion**:
    - Parse tasks.md checkboxes: `- [ ]` (incomplete) vs `- [x]` (complete)
@@ -47,7 +75,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    - For each requirement, search codebase for implementation evidence
    - If requirements appear unimplemented: add CRITICAL issue
 
-5. **Verify Correctness**
+6. **Verify Correctness**
 
    **Requirement Implementation Mapping**:
    - For each requirement from delta specs:
@@ -61,7 +89,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
      - Check if tests exist covering the scenario
      - If scenario appears uncovered: add WARNING
 
-6. **Verify Coherence**
+7. **Verify Coherence**
 
    **Design Adherence**:
    - If design.md exists, extract key decisions
@@ -73,7 +101,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    - Review new code for consistency with project patterns
    - If significant deviations found: add SUGGESTION
 
-7. **Domain Review**
+8. **Domain Review**
 
    Dispatch specialized review agents for domain-specific analysis (security, performance, architecture).
 
@@ -94,13 +122,24 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    - Wait for all agents to complete
    - If an agent fails or times out, log a WARNING with the agent name and continue with remaining agents
 
-   **Note**: Agent findings are integrated into the report in step 8.
+   **Note**: Agent findings are integrated into the report in step 9.
 
-8. **Generate Verification Report**
+9. **Generate Verification Report**
 
    ```
    ## Verification Report: <change-name>
 
+   ### Pre-Flight Results
+   | Check         | Status  | Certainty | Details          |
+   |---------------|---------|-----------|------------------|
+   | Tests         | PASS/FAIL/SKIP | HIGH | <summary> |
+   | Linter        | PASS/FAIL/SKIP | HIGH/MEDIUM | <findings> |
+   | AST Checks    | PASS/FAIL/SKIP | MEDIUM/LOW | <findings> |
+   ```
+
+   Notes for skipped checks: "Skipped - <tool> not available" or "Skipped - <tool> timed out (>60s)".
+
+   ```
    ### Summary
    | Dimension     | Status           |
    |---------------|------------------|

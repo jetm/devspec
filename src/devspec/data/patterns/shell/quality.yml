@@ -1,0 +1,26 @@
+rules:
+  - id: shell-quality-unquoted-variable
+    language: Bash
+    rule:
+      kind: simple_expansion
+      not:
+        inside:
+          kind: string
+    message: "Unquoted variable expansion. Use \"$var\" to prevent word splitting."
+    severity: warning
+    note: |
+      Unquoted variables undergo word splitting and globbing.
+      Always quote: "$variable" instead of $variable.
+
+  - id: shell-quality-unquoted-command-sub
+    language: Bash
+    rule:
+      kind: command_substitution
+      not:
+        inside:
+          kind: string
+    message: "Unquoted command substitution. Use \"$(cmd)\" to prevent word splitting."
+    severity: warning
+    note: |
+      Unquoted command substitutions undergo word splitting.
+      Always quote: "$(command)" instead of $(command).

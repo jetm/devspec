@@ -111,6 +111,100 @@ Implement tasks from a devspec change.
 
    Skip this phase if the build paused due to a blocker, unclear task, or incomplete work. Only run when every task in tasks.md is marked `- [x]`.
 
+   ### 7a. Slop Detection
+
+   Run before subtractive cleanup. Scan all files modified during the build phase.
+
+   **Tool availability check:**
+   ```bash
+   sg --version 2>&1 | grep -q ast-grep && echo "ast-grep available" || echo "ast-grep unavailable - using regex fallback"
+   ```
+   Note: `/usr/bin/sg` on Linux is the `newgrp` utility, not ast-grep. Always verify with `sg --version`.
+
+   **If ast-grep available:** run structural analysis on modified files:
+   ```bash
+   # Run each rule file for detected languages
+   for rule in src/devspec/data/patterns/python/*.yml; do sg scan --rule "$rule" <modified_py_files>; done
+   for rule in src/devspec/data/patterns/c/*.yml; do sg scan --rule "$rule" <modified_c_files>; done
+   for rule in src/devspec/data/patterns/shell/*.yml; do sg scan --rule "$rule" <modified_sh_files>; done
+   ```
+   Collect findings from `sg scan` output. Then also run regex patterns below for patterns not covered by AST rules.
+
+   **If ast-grep unavailable:** run regex patterns only. Note "AST analysis unavailable - using regex fallback" in output.
+
+   **Certainty grading:**
+
+   | Grade | Meaning | Action |
+   |-------|---------|--------|
+   | HIGH | Deterministic match - safe to auto-remove | Auto-fix during this phase |
+   | MEDIUM | Probable issue - needs context to confirm | List with recommendation |
+   | LOW | Heuristic signal - may be intentional | Note only, no action |
+
+   **Python regex patterns** (apply to `*.py` modified files):
+
+   | Pattern | Regex | Certainty | Description |
+   |---------|-------|-----------|-------------|
+   | debug print | `^\s*print\s*\(` | HIGH | Debug print statement |
+   | breakpoint | `^\s*breakpoint\s*\(\)` | HIGH | Debugger breakpoint |
+   | pdb trace | `pdb\.set_trace\(\)` | HIGH | PDB debugger call |
+   | icecream | `^\s*ic\s*\(` | HIGH | icecream debug call |
+   | placeholder pass | `^\s*pass\s*$` | MEDIUM | Pass-only function body |
+   | ellipsis body | `^\s*\.\.\.\s*$` | MEDIUM | Ellipsis-only function body |
+   | NotImplementedError | `raise NotImplementedError` | MEDIUM | Unimplemented placeholder |
+   | empty except | `except.*:\s*\n\s*pass` | MEDIUM | Swallowed exception |
+   | TODO/FIXME/HACK | `#\s*(TODO\|FIXME\|HACK)\b` | LOW | Leftover marker |
+   | commented code block | 3+ consecutive `#` lines with code-like syntax | MEDIUM | Dead commented code |
+   | high comment ratio | >50% comment lines in file | LOW | Verbose/boilerplate comments |
+
+   **C/C++ regex patterns** (apply to `*.c`, `*.cpp`, `*.h`, `*.hpp` modified files):
+
+   | Pattern | Regex | Certainty | Description |
+   |---------|-------|-----------|-------------|
+   | printf debug | `fprintf\s*\(\s*stderr\|printf\s*\("DEBUG` | HIGH | Debug printf |
+   | if-0 block | `#if\s+0\b` | HIGH | Disabled code block |
+   | assert false | `assert\s*\(\s*false\s*\)` | HIGH | Unconditional assert placeholder |
+   | TODO/FIXME | `//\s*(TODO\|FIXME\|HACK)\b` | LOW | Leftover marker |
+   | commented block | 3+ consecutive `//` lines with code-like syntax | MEDIUM | Dead commented code |
+
+   **Shell regex patterns** (apply to `*.sh`, `*.bash`, files with bash shebang):
+
+   | Pattern | Regex | Certainty | Description |
+   |---------|-------|-----------|-------------|
+   | echo debug | `(?i)^\s*echo\s+["']?(DEBUG\|TRACE\|XXX\|FIXME)` | HIGH | Debug echo statement |
+   | set -x left on | `^\s*set\s+-x\b` | HIGH | Trace mode left enabled |
+   | hardcoded /home | `/home/[a-z]` | MEDIUM | Hardcoded home path |
+   | hardcoded /tmp literal | `[^$]/tmp/[a-z]` (not `$TMPDIR`) | MEDIUM | Non-portable temp path |
+   | missing shebang safety | First line is `#!/` but no `set -euo pipefail` in first 10 lines | MEDIUM | Missing safety flags |
+   | TODO/FIXME | `#\s*(TODO\|FIXME\|HACK)\b` | LOW | Leftover marker |
+
+   **Auto-fix behavior:**
+   - HIGH findings: remove them automatically. Do not ask. Report each removal.
+   - MEDIUM findings: list in output with specific recommendation. Do not auto-fix.
+   - LOW findings: note in output. Take no action.
+
+   **Slop Detection output format:**
+   ```
+   ### Slop Detection
+   Tool: ast-grep + regex  [or: regex fallback (ast-grep unavailable)]
+
+   **HIGH (auto-fixed):**
+   - `src/foo.py:42` - debug print removed
+   - `src/bar.py:17` - breakpoint() removed
+
+   **MEDIUM (review recommended):**
+   - `src/baz.py:88` - empty except block - add error handling or logging
+
+   **LOW (noted):**
+   - `src/foo.py` - comment ratio 62% - may indicate AI-generated boilerplate
+
+   Auto-fixed 2 HIGH issues. 1 MEDIUM finding requires review.
+   [or: No slop detected.]
+   ```
+
+   Only include sections that have findings. Omit empty sections.
+
+   ### 7b. Subtractive Cleanup
+
    Read through all changes made during implementation. Look for unnecessary code introduced across tasks and trim it.
 
    **Allowed (subtractive only):**
@@ -131,20 +225,32 @@ Implement tasks from a devspec change.
 
    **Output:**
 
-   If changes were made, produce a "Review & Refactor" section listing each trimmed item with a brief rationale:
+   If changes were made, produce a "Review & Refactor" section with both sub-phases:
    ```
    ### Review & Refactor
+
+   #### Slop Detection
+   Tool: ast-grep + regex
+
+   **HIGH (auto-fixed):**
+   - `src/foo.py:42` - debug print removed
+
+   **MEDIUM (review recommended):**
+   - `src/baz.py:88` - empty except block - add error handling or logging
+
+   Auto-fixed 1 HIGH issue. 1 MEDIUM finding requires review.
+
+   #### Subtractive Cleanup
    - Inlined `_build_key()` at single call site in `lookup()` - removed helper
    - Removed unused `format_debug()` - no callers after task 3 refactored logging
-   - Consolidated duplicate validation in `save()` and `update()` into shared path
 
-   Trimmed 3 items. No tasks modified. No new code added.
+   Trimmed 2 items. No tasks modified. No new code added.
    ```
 
-   If no changes were needed:
+   If no changes were needed in either sub-phase:
    ```
    ### Review & Refactor
-   No unnecessary code found. No changes made.
+   No slop detected. No unnecessary code found. No changes made.
    ```
 
 8. **On completion or pause**
@@ -191,6 +297,12 @@ Task complete
 ...
 
 ### Review & Refactor
+
+#### Slop Detection
+Tool: regex fallback (ast-grep unavailable)
+No slop detected.
+
+#### Subtractive Cleanup
 - Inlined `_build_key()` at single call site in `lookup()` - removed helper
 - Removed unused `format_debug()` - no callers after task 3 refactored logging
 
