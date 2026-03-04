@@ -10,6 +10,7 @@ from devspec.commands.instructions import instructions
 from devspec.commands.list import list_changes
 from devspec.commands.migrate import migrate
 from devspec.commands.new import new
+from devspec.commands.preflight import preflight
 from devspec.commands.status import status
 from devspec.commands.validate import validate
 
@@ -28,6 +29,7 @@ cli.add_command(status)
 cli.add_command(instructions)
 cli.add_command(list_changes)
 cli.add_command(archive)
+cli.add_command(preflight)
 cli.add_command(validate)
 cli.add_command(context)
 cli.add_command(handoff)

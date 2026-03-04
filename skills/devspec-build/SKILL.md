@@ -13,7 +13,14 @@ Implement tasks from a devspec change.
 
 **Steps**
 
-1. **Select the change**
+1. **Environment pre-flight**
+
+   Call `mcp__devspec__devspec_preflight` to check environment readiness.
+   - If errors: surface them to the user before proceeding
+   - If warnings only: note them and continue
+   - If all ok: proceed silently
+
+2. **Select the change**
 
    If a name is provided, use it. Otherwise:
    - Call `mcp__devspec__devspec_list` to get available changes
@@ -21,33 +28,33 @@ Implement tasks from a devspec change.
 
    Always announce: "Using change: <name>"
 
-2. **Check status**
+3. **Check status**
 
    Call `mcp__devspec__devspec_status` with the change name. Parse the result to understand:
    - `schemaName`: The workflow being used
    - Which artifact contains the tasks
    - Current artifact completion status
 
-3. **Read context files**
+4. **Read context files**
 
    Read the tasks file and any other context artifacts (proposal, specs, design) from the change directory using the `devspec://changes/{name}/{artifact}` MCP resource. Understand the full picture before implementing.
 
-4. **Show current progress**
+5. **Show current progress**
 
    Display:
    - Schema being used
    - Progress: "N/M tasks complete"
    - Remaining tasks overview
 
-5. **Decide: team vs sequential**
+6. **Decide: team vs sequential**
 
    Count pending tasks (marked `- [ ]` in tasks.md).
 
-   **If 1-2 pending tasks**: implement sequentially (step 6a below).
+   **If 1-2 pending tasks**: implement sequentially (step 7a below).
 
-   **If 3+ pending tasks**: use agent team orchestration (step 6b below).
+   **If 3+ pending tasks**: use agent team orchestration (step 7b below).
 
-6a. **Sequential implementation (1-2 tasks)**
+7a. **Sequential implementation (1-2 tasks)**
 
    For each pending task:
    - Show which task is being worked on
@@ -62,9 +69,9 @@ Implement tasks from a devspec change.
    - Error or blocker encountered -> report and wait for guidance
    - User interrupts
 
-   After all tasks complete, proceed to Review & Refactor (step 7).
+   After all tasks complete, proceed to Review & Refactor (step 8).
 
-6b. **Agent team orchestration (3+ tasks)**
+7b. **Agent team orchestration (3+ tasks)**
 
    **Phase 1: Analyze dependencies**
 
@@ -105,9 +112,9 @@ Implement tasks from a devspec change.
 
    Send shutdown requests to all teammates via SendMessage with type `shutdown_request`. Delete the team via TeamDelete.
 
-   After all workers complete, proceed to Review & Refactor (step 7).
+   After all workers complete, proceed to Review & Refactor (step 8).
 
-7. **Review & Refactor (only when all tasks are complete)**
+8. **Review & Refactor (only when all tasks are complete)**
 
    Skip this phase if the build paused due to a blocker, unclear task, or incomplete work. Only run when every task in tasks.md is marked `- [x]`.
 
@@ -252,7 +259,7 @@ Implement tasks from a devspec change.
    No slop detected. No unnecessary code found. No changes made.
    ```
 
-8. **On completion or pause**
+9. **On completion or pause**
 
    **If paused**: display progress and explain why. Wait for guidance.
 

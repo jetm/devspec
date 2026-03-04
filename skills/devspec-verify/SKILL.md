@@ -39,6 +39,13 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
 
    Run deterministic checks before LLM analysis. If a tool fails or exceeds 60s, skip it and note in results - never block LLM analysis.
 
+   **Environment Readiness** - call `mcp__devspec__devspec_preflight` to check:
+   - Git state (dirty tree, stashes, leftover backup refs)
+   - Data store health (existence, subdirectories, writability)
+   - Active change integrity (valid structure, no missing metadata)
+   - Tool availability (ruff, shellcheck, uv, ast-grep, claude)
+   Include the results as an "Environment Readiness" section in the verification report, before implementation quality results.
+
    **Test Runner** - detect and run in order:
    - `pyproject.toml` + `uv` available → `uv run pytest` (capture pass/fail count + exit code)
    - `pytest` on PATH → `pytest` (capture pass/fail count + exit code)

@@ -13,27 +13,34 @@ Plan a change -- create all artifacts needed before implementation.
 
 **Steps**
 
-1. **Check for handoff context**
+1. **Environment pre-flight**
+
+   Call `mcp__devspec__devspec_preflight` to check environment readiness.
+   - If errors: surface them to the user before proceeding
+   - If warnings only: note them and continue
+   - If all ok: proceed silently
+
+2. **Check for handoff context**
 
    If the user mentions a name or one can be inferred from conversation, call the `mcp__devspec__devspec_handoff_read` tool with the name.
    If a handoff exists, use it as the starting context. If not, proceed with what the user provided.
 
    Also check if Claude Code auto memory exists for this project (see `/devspec-memory` skill for path computation). If `MEMORY.md` is missing, briefly suggest: "Consider running `/devspec-memory` to populate project memory for future sessions." Don't block on this.
 
-2. **Create the change**
+3. **Create the change**
 
    If no change exists yet, call the `mcp__devspec__devspec_new` tool with the change name.
    This scaffolds a change directory in the project's global data store.
 
    If a change already exists, confirm the user wants to continue it.
 
-3. **Get the artifact build order**
+4. **Get the artifact build order**
 
    Call the `mcp__devspec__devspec_status` tool with the change name. Parse the result to understand:
    - `applyRequires`: artifacts needed before implementation
    - `artifacts`: list of all artifacts with status and dependencies
 
-4. **Check for relevant learnings**
+5. **Check for relevant learnings**
 
    Check the project's learnings directory for relevant prior lessons. The learnings are stored in the global data store under the `learnings/` subdirectory.
 
@@ -43,7 +50,7 @@ Plan a change -- create all artifacts needed before implementation.
 
    Don't force learnings into artifacts if they aren't relevant. If no learnings directory exists, skip this step silently.
 
-5. **Create artifacts in dependency order**
+6. **Create artifacts in dependency order**
 
    Loop through artifacts (those with no pending dependencies first):
 
@@ -72,11 +79,11 @@ Plan a change -- create all artifacts needed before implementation.
 
    For independent artifacts, you may delegate writing to a sonnet subagent via the Task tool to speed things up.
 
-6. **Validate the change**
+7. **Validate the change**
 
    Call `mcp__devspec__devspec_validate` with the change name. Fix any issues reported.
 
-7. **Show final status**
+8. **Show final status**
 
    Call `mcp__devspec__devspec_status` with the change name and display the result.
 

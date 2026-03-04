@@ -13,6 +13,7 @@ from devspec.core.change import create_change
 from devspec.core.graph import ArtifactGraph
 from devspec.core.handoff import build_context, read_handoff_bundle, write_handoff
 from devspec.core.instructions import generate_instructions
+from devspec.core.preflight import run_preflight
 from devspec.core.resolve import KEBAB_CASE_RE, resolve_project_data_dir
 from devspec.core.schema import load_schema
 from devspec.core.state import detect_completed, detect_task_progress, mark_task
@@ -340,3 +341,19 @@ def devspec_task_mark(name: str, task_index: int, done: bool = True, project: st
         return _error("out_of_range", str(e))
 
     return {"taskIndex": task_index, "done": done, "tasksFile": str(tasks_file.relative_to(data_dir))}
+
+
+@mcp.tool()
+def devspec_preflight(project: str | None = None) -> dict:
+    """Run pre-flight environment checks."""
+    try:
+        data_dir = _get_data_dir(project)
+    except FileNotFoundError as e:
+        return _error("project_not_found", str(e))
+
+    report = run_preflight(data_dir)
+    return {
+        "passed": report.passed,
+        "summary": report.summary,
+        "checks": [{"name": c.name, "status": c.status, "detail": c.detail} for c in report.checks],
+    }
