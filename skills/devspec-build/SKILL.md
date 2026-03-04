@@ -117,18 +117,17 @@ Implement tasks from a devspec change.
 
    **Tool availability check:**
    ```bash
-   sg --version 2>&1 | grep -q ast-grep && echo "ast-grep available" || echo "ast-grep unavailable - using regex fallback"
+   command -v ast-grep && echo "ast-grep available" || echo "ast-grep unavailable - using regex fallback"
    ```
-   Note: `/usr/bin/sg` on Linux is the `newgrp` utility, not ast-grep. Always verify with `sg --version`.
 
    **If ast-grep available:** run structural analysis on modified files:
    ```bash
    # Run each rule file for detected languages
-   for rule in src/devspec/data/patterns/python/*.yml; do sg scan --rule "$rule" <modified_py_files>; done
-   for rule in src/devspec/data/patterns/c/*.yml; do sg scan --rule "$rule" <modified_c_files>; done
-   for rule in src/devspec/data/patterns/shell/*.yml; do sg scan --rule "$rule" <modified_sh_files>; done
+   for rule in src/devspec/data/patterns/python/*.yml; do ast-grep scan --rule "$rule" <modified_py_files>; done
+   for rule in src/devspec/data/patterns/c/*.yml; do ast-grep scan --rule "$rule" <modified_c_files>; done
+   for rule in src/devspec/data/patterns/shell/*.yml; do ast-grep scan --rule "$rule" <modified_sh_files>; done
    ```
-   Collect findings from `sg scan` output. Then also run regex patterns below for patterns not covered by AST rules.
+   Collect findings from `ast-grep scan` output. Then also run regex patterns below for patterns not covered by AST rules.
 
    **If ast-grep unavailable:** run regex patterns only. Note "AST analysis unavailable - using regex fallback" in output.
 

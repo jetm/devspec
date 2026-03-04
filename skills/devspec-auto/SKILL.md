@@ -250,8 +250,8 @@ Implement all tasks from tasks.md sequentially.
 4. **If any task is unclear or ambiguous: HARD-STOP.**
    Report: phase (build), which task, what's unclear, tasks completed so far.
 5. After all tasks are complete, run slop detection on modified files:
-   - Check ast-grep: `sg --version 2>&1 | grep -q ast-grep`. If available, run `for rule in src/devspec/data/patterns/<lang>/*.yml; do sg scan --rule "$rule" <modified_files>; done` per language.
-   - If `sg` unavailable, apply regex patterns: Python (print, breakpoint, pdb, ic, placeholder pass, empty except, TODO/FIXME), C/C++ (printf debug, #if 0, assert(false)), shell (echo debug, set -x).
+   - Check ast-grep: `command -v ast-grep`. If available, run `for rule in src/devspec/data/patterns/<lang>/*.yml; do ast-grep scan --rule "$rule" <modified_files>; done` per language.
+   - If `ast-grep` unavailable, apply regex patterns: Python (print, breakpoint, pdb, ic, placeholder pass, empty except, TODO/FIXME), C/C++ (printf debug, #if 0, assert(false)), shell (echo debug, set -x).
    - Grade findings: HIGH (auto-remove immediately), MEDIUM (list with recommendation), LOW (note only).
    - Report in a "Slop Detection" subsection of review output.
 6. Subtractive cleanup:
@@ -311,7 +311,7 @@ Check that the implementation matches the change artifacts.
 3. **Pre-Flight Checks** (deterministic, before LLM analysis):
    - **Tests:** Detect test runner (uv run pytest, pytest, make test, cargo test, go test). Run it, capture exit code and summary.
    - **Linters:** Detect configured linters (ruff check, shellcheck, gcc -fsyntax-only). Run on modified files.
-   - **ast-grep:** Verify with `sg --version 2>&1 | grep -q ast-grep`. If available, iterate rule files: `for rule in src/devspec/data/patterns/<lang>/*.yml; do sg scan --rule "$rule" <files>; done`.
+   - **ast-grep:** Verify with `command -v ast-grep`. If available, iterate rule files: `for rule in src/devspec/data/patterns/<lang>/*.yml; do ast-grep scan --rule "$rule" <files>; done`.
    - Grade: HIGH (test failure, syntax error), MEDIUM (linter warning), LOW (heuristic suggestion).
    - If any tool fails or times out (>60s), skip it and note in results. Never block LLM analysis.
    - Include a "Pre-Flight Results" section in the report before LLM analysis sections.

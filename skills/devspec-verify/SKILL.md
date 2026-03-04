@@ -53,10 +53,10 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    - Modified files include `.c`, `.cpp`, `.h`, `.hpp` and `gcc`/`clang` available → syntax-only check (`-fsyntax-only`)
 
    **AST Structural Checks** - run when ast-grep is available:
-   - Verify ast-grep: `sg --version 2>&1 | grep -q ast-grep` (note: `/usr/bin/sg` on Linux is `newgrp`, not ast-grep)
+   - Verify ast-grep: `command -v ast-grep`
    - Detect modified file languages; find matching rule files in `src/devspec/data/patterns/<lang>/`
-   - Run each rule file individually: `for rule in src/devspec/data/patterns/<lang>/*.yml; do sg scan --rule "$rule" <modified files>; done`
-   - If `sg` is not ast-grep or not on PATH → skip and note "AST checks skipped (ast-grep not available)"
+   - Run each rule file individually: `for rule in src/devspec/data/patterns/<lang>/*.yml; do ast-grep scan --rule "$rule" <modified files>; done`
+   - If `ast-grep` is not on PATH → skip and note "AST checks skipped (ast-grep not available)"
 
    **Certainty Grading** - apply to all findings:
    - **HIGH**: definitive failure - test suite exits non-zero, syntax error, linter error
