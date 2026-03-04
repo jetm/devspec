@@ -1,40 +1,45 @@
-rules:
-  - id: c-placeholder-assert-false
-    language: C
-    rule:
-      any:
-        - pattern: assert(false)
-        - pattern: assert(0)
-    message: "assert(false) or assert(0) used as placeholder - unimplemented code path."
-    severity: error
-    note: |
-      assert(false) is often used to mark unreachable or unimplemented code paths.
-      Replace with a proper error return, exception, or implementation.
+id: "c-placeholder-assert-false"
+language: C
+rule:
+  any:
+  - pattern: assert(false)
+  - pattern: assert(0)
+message: "assert(false) or assert(0) used as placeholder - unimplemented code path."
+severity: error
+note: |
+  assert(false) is often used to mark unreachable or unimplemented code paths.
+  Replace with a proper error return, exception, or implementation.
 
-  - id: cpp-placeholder-assert-false
-    language: Cpp
-    rule:
-      any:
-        - pattern: assert(false)
-        - pattern: assert(0)
-    message: "assert(false) or assert(0) used as placeholder - unimplemented code path."
-    severity: error
+---
 
-  - id: cpp-placeholder-todo-throw
-    language: Cpp
-    rule:
-      pattern: throw std::runtime_error("TODO$$$")
-    message: "TODO throw detected - placeholder code that will crash at runtime."
-    severity: error
-    note: |
-      Throwing with a TODO message means this code path is unimplemented.
-      Implement the functionality before shipping.
+id: "cpp-placeholder-assert-false"
+language: Cpp
+rule:
+  any:
+  - pattern: assert(false)
+  - pattern: assert(0)
+message: "assert(false) or assert(0) used as placeholder - unimplemented code path."
+severity: error
 
-  - id: cpp-placeholder-not-implemented-throw
-    language: Cpp
-    rule:
-      any:
-        - pattern: throw std::runtime_error("not implemented$$$")
-        - pattern: throw std::logic_error("not implemented$$$")
-    message: "Unimplemented placeholder detected (not implemented throw)."
-    severity: error
+---
+
+id: "cpp-placeholder-todo-throw"
+language: Cpp
+rule:
+  pattern: "throw std::runtime_error(\"TODO$$$\")"
+message: "TODO throw detected - placeholder code that will crash at runtime."
+severity: error
+note: |
+  Throwing with a TODO message means this code path is unimplemented.
+  Implement the functionality before shipping.
+
+---
+
+id: "cpp-placeholder-not-implemented-throw"
+language: Cpp
+rule:
+  any:
+  - pattern: "throw std::runtime_error(\"not implemented$$$\")"
+  - pattern: "throw std::logic_error(\"not implemented$$$\")"
+message: Unimplemented placeholder detected (not implemented throw).
+severity: error

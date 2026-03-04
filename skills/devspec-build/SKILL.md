@@ -129,10 +129,7 @@ Implement tasks from a devspec change.
 
    **If ast-grep available:** run structural analysis on modified files:
    ```bash
-   # Run each rule file for detected languages
-   for rule in src/devspec/data/patterns/python/*.yml; do ast-grep scan --rule "$rule" <modified_py_files>; done
-   for rule in src/devspec/data/patterns/c/*.yml; do ast-grep scan --rule "$rule" <modified_c_files>; done
-   for rule in src/devspec/data/patterns/shell/*.yml; do ast-grep scan --rule "$rule" <modified_sh_files>; done
+   ast-grep scan <modified_py_files> <modified_c_files> <modified_sh_files>
    ```
    Collect findings from `ast-grep scan` output. Then also run regex patterns below for patterns not covered by AST rules.
 

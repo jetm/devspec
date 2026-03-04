@@ -62,7 +62,7 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
    **AST Structural Checks** - run when ast-grep is available:
    - Verify ast-grep: `command -v ast-grep`
    - Detect modified file languages; find matching rule files in `src/devspec/data/patterns/<lang>/`
-   - Run each rule file individually: `for rule in src/devspec/data/patterns/<lang>/*.yml; do ast-grep scan --rule "$rule" <modified files>; done`
+   - Run on modified files: `ast-grep scan <modified files>`
    - If `ast-grep` is not on PATH → skip and note "AST checks skipped (ast-grep not available)"
 
    **Certainty Grading** - apply to all findings:

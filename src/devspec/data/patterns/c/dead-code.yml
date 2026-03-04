@@ -1,33 +1,34 @@
-rules:
-  - id: c-dead-code-ifdef-zero
-    language: C
-    rule:
-      kind: preproc_if
-      has:
-        kind: preproc_arg
-        regex: "^0$"
-    message: "#if 0 block detected - disabled code should be removed."
-    severity: warning
-    note: |
-      #if 0 blocks are dead code that should be removed.
-      Use version control to preserve code history instead.
+id: "c-dead-code-ifdef-zero"
+language: C
+rule:
+  kind: preproc_if
+  has:
+    kind: preproc_arg
+    regex: ^0$
+message: "#if 0 block detected - disabled code should be removed."
+severity: warning
+note: |
+  #if 0 blocks are dead code that should be removed.
+  Use version control to preserve code history instead.
 
-  - id: cpp-dead-code-empty-catch
-    language: Cpp
-    rule:
-      kind: catch_clause
+---
+
+id: "cpp-dead-code-empty-catch"
+language: Cpp
+rule:
+  kind: catch_clause
+  has:
+    kind: compound_statement
+    not:
       has:
-        kind: compound_statement
-        not:
-          has:
-            any:
-              - kind: expression_statement
-              - kind: return_statement
-              - kind: throw_statement
-              - kind: if_statement
-              - kind: declaration
-    message: "Empty catch block silently swallows exceptions."
-    severity: warning
-    note: |
-      Empty catch blocks hide errors. At minimum log the exception,
-      or re-throw if the error cannot be handled here.
+        any:
+        - kind: expression_statement
+        - kind: return_statement
+        - kind: throw_statement
+        - kind: if_statement
+        - kind: declaration
+message: Empty catch block silently swallows exceptions.
+severity: warning
+note: |
+  Empty catch blocks hide errors. At minimum log the exception,
+  or re-throw if the error cannot be handled here.

@@ -1,37 +1,42 @@
-rules:
-  - id: c-debug-printf
-    language: C
-    rule:
-      pattern: printf($$$ARGS)
-    message: "printf() debug statement detected. Remove before committing."
-    severity: warning
-    note: |
-      printf() in application code (outside of CLI output functions) is often
-      a debug artifact. Replace with proper logging or remove.
+id: "c-debug-printf"
+language: C
+rule:
+  pattern: printf($$$ARGS)
+message: printf() debug statement detected. Remove before committing.
+severity: warning
+note: |
+  printf() in application code (outside of CLI output functions) is often
+  a debug artifact. Replace with proper logging or remove.
 
-  - id: c-debug-fprintf-stderr
-    language: C
-    rule:
-      pattern: fprintf(stderr, $$$ARGS)
-    message: "fprintf(stderr, ...) debug statement detected."
-    severity: warning
-    note: |
-      fprintf to stderr is commonly used for quick debug output.
-      Replace with proper error handling or structured logging.
+---
 
-  - id: cpp-debug-cout
-    language: Cpp
-    rule:
-      pattern: std::cout << $$$ARGS
-    message: "std::cout debug output detected. Remove before committing."
-    severity: warning
-    note: |
-      std::cout in non-output code is usually a debug artifact.
-      Use a proper logging framework instead.
+id: "c-debug-fprintf-stderr"
+language: C
+rule:
+  pattern: "fprintf(stderr, $$$ARGS)"
+message: "fprintf(stderr, ...) debug statement detected."
+severity: warning
+note: |
+  fprintf to stderr is commonly used for quick debug output.
+  Replace with proper error handling or structured logging.
 
-  - id: cpp-debug-cerr
-    language: Cpp
-    rule:
-      pattern: std::cerr << $$$ARGS
-    message: "std::cerr debug output detected."
-    severity: warning
+---
+
+id: "cpp-debug-cout"
+language: Cpp
+rule:
+  pattern: "std::cout << $$$ARGS"
+message: "std::cout debug output detected. Remove before committing."
+severity: warning
+note: |
+  std::cout in non-output code is usually a debug artifact.
+  Use a proper logging framework instead.
+
+---
+
+id: "cpp-debug-cerr"
+language: Cpp
+rule:
+  pattern: "std::cerr << $$$ARGS"
+message: "std::cerr debug output detected."
+severity: warning

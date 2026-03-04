@@ -1,0 +1,4 @@
+ruleDirs:
+  - src/devspec/data/patterns/python
+  - src/devspec/data/patterns/c
+  - src/devspec/data/patterns/shell
