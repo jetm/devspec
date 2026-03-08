@@ -3,11 +3,13 @@ name: "devspec-explore"
 description: |
   Enter explore mode for thinking through ideas and investigating problems.
   Use when: "explore", "think about", "investigate", "devspec explore", "what if".
-  Interactive thinking partner. Read-only - no code changes. Runs inline at opus.
+  Interactive thinking partner. Read-only - no code changes. Runs inline with extended thinking.
 allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, mcp__devspec__*
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
+
+This skill uses ultrathink-level reasoning for thorough exploration.
 
 **IMPORTANT: Explore mode is for thinking, not implementing.** You may read files, search code, and investigate the codebase, but you must NEVER write code or implement features. If the user asks you to implement something, remind them to exit explore mode first (e.g., start a change with `/devspec-plan` or `/devspec-build`). You MAY create devspec artifacts (proposals, designs, specs) if the user asks -- that's capturing thinking, not implementing.
 

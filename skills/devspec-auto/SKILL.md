@@ -3,7 +3,7 @@ name: "devspec-auto"
 description: |
   Run the full devspec pipeline autonomously from a handoff.
   Use when: "devspec auto", "auto build", "run pipeline", "autonomous build", "auto plan and build".
-  Validates handoff, then runs plan, build, verify, and archive as a single autonomous agent. Hard-stops on ambiguity.
+  Validates handoff, then runs plan, build, verify, and archive as a single autonomous pipeline. Hard-stops on ambiguity. Runs autonomously.
 disable-model-invocation: true
 ---
 
@@ -77,7 +77,6 @@ Use the template in the **Plan+Build Composite Prompt Template** section below.
 Spawn a Task subagent with:
 - **subagent_type**: `general-purpose`
 - **mode**: `bypassPermissions`
-- **model**: `sonnet`
 - **prompt**: The assembled composite prompt from step 3
 
 Wait for the agent to complete.
@@ -89,7 +88,6 @@ Wait for the agent to complete.
 Spawn a separate foreground Task subagent for verification:
 - **subagent_type**: `general-purpose`
 - **mode**: `bypassPermissions`
-- **model**: `sonnet`
 - **prompt**: The verify prompt from the **Verify Prompt Template** section below, with `{{CHANGE_NAME}}` replaced
 
 Wait for the agent to complete. Capture the verification report from its output.
@@ -127,7 +125,6 @@ Verification found critical issues that must be fixed before archiving.
 Spawn a separate foreground Task subagent for archiving:
 - **subagent_type**: `general-purpose`
 - **mode**: `bypassPermissions`
-- **model**: `sonnet`
 - **prompt**: The archive prompt from the **Archive Prompt Template** section below, with `{{CHANGE_NAME}}` replaced
 
 Wait for the agent to complete.

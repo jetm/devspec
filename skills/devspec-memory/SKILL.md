@@ -3,7 +3,7 @@ name: "devspec-memory"
 description: |
   Generate or refresh Claude Code auto memory for the current project.
   Use when: "devspec memory", "generate memory", "refresh memory", "populate memory", "learn project".
-  Reads CLAUDE.md, docs, and codebase structure to create optimized memory files. Runs inline at opus.
+  Reads CLAUDE.md, docs, and codebase structure to create optimized memory files. Runs inline.
 disable-model-invocation: true
 allowed-tools: Read, Write, Glob, Grep, Bash, mcp__devspec__*
 ---

@@ -3,11 +3,13 @@ name: "devspec-verify"
 description: |
   Verify implementation matches devspec change artifacts.
   Use when: "verify change", "devspec verify", "check implementation", "ready to archive?".
-  Checks completeness, correctness, and coherence. Generates verification report. Runs inline at opus.
+  Checks completeness, correctness, and coherence. Generates verification report. Runs inline with extended thinking.
 allowed-tools: Read, Grep, Glob, Bash, Task, mcp__devspec__*
 ---
 
 Verify that an implementation matches the change artifacts (specs, tasks, design).
+
+This skill uses ultrathink-level reasoning for thorough verification.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 

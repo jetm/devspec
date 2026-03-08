@@ -3,7 +3,7 @@ name: "devspec-archive"
 description: |
   Archive a completed devspec change.
   Use when: "archive change", "devspec archive", "finalize change", "done with change".
-  Checks completion, prompts for spec sync, archives. Runs inline at opus.
+  Checks completion, prompts for spec sync, archives. Runs inline.
 disable-model-invocation: true
 allowed-tools: Read, Bash, Glob, mcp__devspec__*
 ---

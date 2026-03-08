@@ -3,11 +3,13 @@ name: "devspec-plan"
 description: |
   Plan a change by creating devspec artifacts (proposal, specs, design, tasks).
   Use when: "plan change", "devspec plan", "create artifacts", "spec out", "new change".
-  Creates artifacts in dependency order using templates and instructions from CLI. Runs inline at opus.
+  Creates artifacts in dependency order using templates and instructions from CLI. Runs inline with extended thinking.
 allowed-tools: Read, Grep, Glob, Bash, Task, mcp__devspec__*
 ---
 
 Plan a change -- create all artifacts needed before implementation.
+
+This skill uses ultrathink-level reasoning for thorough planning.
 
 **Input**: Optionally specify a change name (kebab-case) or a description of what to build. If a handoff exists, read it for context.
 
@@ -77,7 +79,7 @@ Plan a change -- create all artifacts needed before implementation.
       - Use **AskUserQuestion tool** to clarify
       - Then continue with creation
 
-   For independent artifacts, you may delegate writing to a sonnet subagent via the Task tool to speed things up.
+   For independent artifacts, you may delegate writing to a subagent via the Task tool to speed things up.
 
 7. **Validate the change**
 
