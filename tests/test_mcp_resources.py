@@ -5,7 +5,6 @@ import pytest
 from devspec.mcp.resources import (
     get_artifact,
     get_delta_spec,
-    get_learnings,
     get_main_spec,
     get_schema,
     list_changes,
@@ -20,7 +19,6 @@ def data_dir(tmp_path, monkeypatch):
     (d / "changes").mkdir()
     (d / "changes" / "archive").mkdir()
     (d / "specs").mkdir()
-    (d / "learnings").mkdir()
 
     import devspec.mcp.resources as resources_module
 
@@ -138,40 +136,6 @@ class TestGetMainSpec:
         result = get_main_spec("no-such-capability")
         assert result.startswith("Error:")
         assert "not found" in result.lower()
-
-
-# -- get_learnings --
-
-
-class TestGetLearnings:
-    def test_reads_learning_files(self, data_dir):
-        cat_dir = data_dir / "learnings" / "architecture"
-        cat_dir.mkdir()
-        (cat_dir / "design-patterns.md").write_text("---\ntitle: Test\n---\n\nLesson content.")
-        result = get_learnings("architecture")
-        assert "Lesson content" in result
-        assert "design-patterns.md" in result
-
-    def test_multiple_files_concatenated(self, data_dir):
-        cat_dir = data_dir / "learnings" / "testing"
-        cat_dir.mkdir()
-        (cat_dir / "first.md").write_text("First lesson.")
-        (cat_dir / "second.md").write_text("Second lesson.")
-        result = get_learnings("testing")
-        assert "First lesson" in result
-        assert "Second lesson" in result
-        assert "---" in result  # separator between files
-
-    def test_not_found_category(self, data_dir):
-        result = get_learnings("nonexistent-category")
-        assert result.startswith("Error:")
-        assert "not found" in result.lower()
-
-    def test_empty_category(self, data_dir):
-        cat_dir = data_dir / "learnings" / "empty-cat"
-        cat_dir.mkdir()
-        result = get_learnings("empty-cat")
-        assert "No learning files" in result
 
 
 # -- get_schema --

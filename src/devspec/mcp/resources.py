@@ -136,28 +136,6 @@ def get_main_spec(capability: str) -> str:
     return spec_file.read_text(encoding="utf-8")
 
 
-@mcp.resource("devspec://learnings/{category}")
-def get_learnings(category: str) -> str:
-    """Return learning entries for a category."""
-    if err := _validate_path_param(category, "category"):
-        return err
-    try:
-        data_dir = _data_dir()
-    except FileNotFoundError as e:
-        return f"Error: {e}"
-
-    category_dir = data_dir / "learnings" / category
-    if not category_dir.exists():
-        return f"Error: Learning category not found: {category}"
-
-    parts = []
-    for learning_file in sorted(category_dir.iterdir()):
-        if learning_file.suffix == ".md":
-            parts.append(f"# {learning_file.name}\n\n{learning_file.read_text(encoding='utf-8')}")
-
-    return "\n\n---\n\n".join(parts) if parts else f"No learning files found in category: {category}"
-
-
 @mcp.resource("devspec://schema")
 def get_schema() -> str:
     """Return the current devspec schema definition."""

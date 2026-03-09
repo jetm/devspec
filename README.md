@@ -91,12 +91,11 @@ Add to `.claude/settings.json` to register:
 | `devspec://changes/{name}/{artifact}` | Read a change artifact |
 | `devspec://changes/{name}/specs/{capability}` | Read a delta spec |
 | `devspec://specs/{capability}` | Read a main spec |
-| `devspec://learnings/{category}` | Read learnings for a category |
 | `devspec://schema` | Read the workflow schema |
 
 ## Claude Code Skills
 
-8 skills in `skills/` - symlink to `~/.claude/skills/` to activate:
+7 skills in `skills/` - symlink to `~/.claude/skills/` to activate:
 
 ```bash
 ln -s $(pwd)/skills/devspec-* ~/.claude/skills/

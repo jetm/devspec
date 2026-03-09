@@ -93,14 +93,6 @@ Check if Claude Code's auto memory has been populated for this project:
 
 Don't block on this - it's a suggestion, not a gate.
 
-### Check for relevant learnings
-
-Check the project's learnings directory (in the global data store under `learnings/`) for relevant prior lessons.
-
-Search YAML frontmatter `tags` and `title` fields for keyword matches. If relevant learnings are found, mention them naturally as context early in the conversation - e.g., "There's a prior learning about <topic> from the <change-name> change that might be relevant."
-
-Don't force learnings into the conversation if they aren't relevant. If no learnings directory exists, proceed without mentioning it.
-
 ### When no change exists
 
 Think freely. When insights crystallize, you might offer:

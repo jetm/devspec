@@ -16,7 +16,6 @@ class TestInit:
         assert (data_dir / "specs").is_dir()
         assert (data_dir / "changes").is_dir()
         assert (data_dir / "changes" / "archive").is_dir()
-        assert (data_dir / "learnings").is_dir()
 
     def test_creates_marker_file(self, tmp_path, monkeypatch):
         monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))

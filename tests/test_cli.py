@@ -15,7 +15,6 @@ def _setup_project(tmp_path: Path, project_name: str = "test-proj") -> tuple[Pat
     (data_dir / "specs").mkdir()
     (data_dir / "changes").mkdir()
     (data_dir / "changes" / "archive").mkdir()
-    (data_dir / "learnings").mkdir()
     return data_home, data_dir
 
 

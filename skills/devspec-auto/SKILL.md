@@ -215,9 +215,7 @@ Create the change and all artifacts needed for implementation.
 2. Get artifact build order by calling `mcp__devspec__devspec_status` with `name: "{{CHANGE_NAME}}"`.
    Parse the result to find `applyRequires` and `artifacts` with their dependencies.
 
-3. Check the `devspec://learnings/{category}` MCP resources for relevant prior lessons. Use relevant learnings as context when creating artifacts. Skip silently if no learnings exist.
-
-4. Create artifacts in dependency order. For each artifact that is ready:
+3. Create artifacts in dependency order. For each artifact that is ready:
    - Call `mcp__devspec__devspec_instructions` with `artifact_id` and `name: "{{CHANGE_NAME}}"` to get instructions.
    - Read any completed dependency files for context
    - Create the artifact file using `template` as structure
@@ -348,7 +346,7 @@ Output the full verification report. The caller reads your output to determine n
 The following is the prompt template passed to the archive Task subagent. Replace `{{CHANGE_NAME}}` with the change name.
 
 ````
-You are running the devspec archive phase autonomously for change "{{CHANGE_NAME}}". Do NOT ask the user anything. Spec sync and learning capture are skipped - they require user interaction.
+You are running the devspec archive phase autonomously for change "{{CHANGE_NAME}}". Do NOT ask the user anything. Spec sync is skipped - it requires user interaction.
 
 ## CRITICAL RULES
 
@@ -361,9 +359,7 @@ Finalize the change.
 
 1. **Skip spec sync** - this is an autonomous workflow. Do not prompt for it.
 
-2. **Skip learning capture** - this is an autonomous workflow. Do not prompt for it.
-
-3. Archive the change by calling `mcp__devspec__devspec_archive` with `name: "{{CHANGE_NAME}}"` and `skip_specs: true`.
+2. Archive the change by calling `mcp__devspec__devspec_archive` with `name: "{{CHANGE_NAME}}"` and `skip_specs: true`.
 
 4. Report archive result.
 
@@ -389,5 +385,5 @@ Finalize the change.
 - All file changes remain unstaged - never commit
 - Hard-stop is the only response to ambiguity - no guessing
 - Archive is skipped if verify finds CRITICAL issues - the user must fix and re-run
-- Spec sync and learning capture are skipped - they require user interaction
+- Spec sync is skipped - it requires user interaction
 - All agents run with `bypassPermissions` - safety relies on the git prohibition, hard-stop rules, and handoff data fencing above. This is broader than the `context: fork` model used by individual skills.

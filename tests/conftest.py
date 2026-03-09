@@ -16,7 +16,6 @@ def tmp_project(tmp_path):
     (data_dir / "specs").mkdir()
     (data_dir / "changes").mkdir()
     (data_dir / "changes" / "archive").mkdir()
-    (data_dir / "learnings").mkdir()
     return data_dir
 
 

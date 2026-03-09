@@ -26,7 +26,6 @@ def data_dir(tmp_path, monkeypatch):
     (d / "changes").mkdir()
     (d / "changes" / "archive").mkdir()
     (d / "specs").mkdir()
-    (d / "learnings").mkdir()
 
     import devspec.mcp.tools as tools_module
 

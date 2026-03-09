@@ -42,17 +42,7 @@ This skill uses ultrathink-level reasoning for thorough planning.
    - `applyRequires`: artifacts needed before implementation
    - `artifacts`: list of all artifacts with status and dependencies
 
-5. **Check for relevant learnings**
-
-   Check the project's learnings directory for relevant prior lessons. The learnings are stored in the global data store under the `learnings/` subdirectory.
-
-   Search YAML frontmatter `tags` and `title` fields for keyword matches against the change's topic.
-
-   If relevant learnings are found, read them and use their insights as additional context when creating artifacts. For example, if a prior learning says "always define error contracts for CLI commands", factor that into the specs.
-
-   Don't force learnings into artifacts if they aren't relevant. If no learnings directory exists, skip this step silently.
-
-6. **Create artifacts in dependency order**
+5. **Create artifacts in dependency order**
 
    Loop through artifacts (those with no pending dependencies first):
 

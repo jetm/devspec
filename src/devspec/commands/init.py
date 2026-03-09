@@ -41,7 +41,6 @@ def init(project_name: str | None) -> None:
     (data_dir / "specs").mkdir()
     (data_dir / "changes").mkdir()
     (data_dir / "changes" / "archive").mkdir()
-    (data_dir / "learnings").mkdir()
 
     # Create marker file in cwd
     marker.write_text(project_name + "\n")

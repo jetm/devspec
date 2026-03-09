@@ -69,4 +69,3 @@ Archive a completed change.
 - Use `devspec_status` for all completion checking - don't read files manually
 - Don't block archive on warnings - inform, confirm, then proceed with `force=True`
 - Show clear summary of what happened
-- Suggest `/devspec-learn` as a follow-up, don't inline the learning flow
