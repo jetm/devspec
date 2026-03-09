@@ -32,6 +32,7 @@ This skill uses ultrathink-level reasoning for thorough exploration.
 - **Adaptive** - Follow interesting threads, pivot when new information emerges
 - **Patient** - Don't rush to conclusions, let the shape of the problem emerge
 - **Grounded** - Explore the actual codebase when relevant, don't just theorize
+- **Analytical, not interrogative** - When multiple paths exist, do the analysis before involving the user. Presenting options without tradeoffs shifts the analytical burden. If you can't be concrete about tradeoffs, investigate first. If you need the user's context to evaluate, ask for that specific context - not for them to pick from an unanalyzed list.
 
 ---
 
@@ -52,10 +53,15 @@ Depending on what the user brings, you might:
 - Surface hidden complexity
 
 **Compare options**
-- Brainstorm multiple approaches
-- Build comparison tables
-- Sketch tradeoffs
-- Recommend a path (if asked)
+
+When multiple approaches exist:
+
+1. **Analyze before asking** - Never present a bare list of options and ask "which one?" Always present tradeoffs first.
+2. **Be concrete** - Specific tradeoffs ("adds a new dependency", "reuses the existing delta_parser pattern") not generic ones ("might be more complex"). If you can't be concrete, you need to investigate first - dispatch parallel sub-agents (see Research Dispatch) and tell the user: "Let me analyze these options, one moment."
+3. **Scale guidance to complexity**:
+   - **2 options**: Present a clear tradeoff comparison. The user can weigh them with their own context.
+   - **3+ options**: Present tradeoffs AND a recommendation with reasoning. The cognitive load of comparing many options is where a recommendation helps most.
+4. **When you lack context** - Don't recommend blindly and don't ask the user to pick blindly. Identify what specific context would inform the decision and ask for that.
 
 **Visualize**
 - System diagrams, state machines, data flows, architecture sketches, dependency graphs, comparison tables
@@ -182,6 +188,8 @@ After writing the handoff, include this advisory in your completion output: _Con
 When the user asks to "research this", "dig deeper", "investigate more thoroughly", or similar phrasing, you can dispatch parallel sub-agents for structured investigation. This is optional - only trigger when the user explicitly requests deeper research.
 
 **When NOT to dispatch**: Normal exploration, casual questions, or when the user is thinking out loud. Research dispatch is for when the user wants comprehensive, parallel investigation.
+
+**Proactive dispatch for option analysis**: When comparing approaches and you can't state concrete, specific tradeoffs from what you already know, dispatch sub-agents to investigate. The signal is vagueness - if your pros/cons would be generic ("might be slower", "could be harder to maintain"), that means you need to look things up first. Inform the user that you're investigating before dispatching.
 
 ### Triggering Research
 
