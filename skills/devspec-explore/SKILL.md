@@ -232,6 +232,22 @@ After presenting results, return to normal explore mode. The research findings b
 
 ---
 
+## Multi-Phase Detection
+
+When the emerging scope looks too large for a single change, suggest `/devspec-multi` to the user. This is advisory only - a suggestion in the conversation, not a gate or automatic redirect. The user decides whether to use it.
+
+**Suggest `/devspec-multi` when any of these signals appear:**
+- 4 or more distinct capabilities are surfacing in the emerging scope
+- The user mentions "phases", "stages", "too big", or "split"
+- The estimated task count exceeds 20
+
+**How to suggest:** Mention it naturally in conversation, e.g.:
+"This looks like it might benefit from `/devspec-multi` for multi-phase execution - it would automatically chain the phases after explore."
+
+**Do not** redirect automatically, block exploration, or pressure the user. Just surface the option and continue exploring.
+
+---
+
 ## Guardrails
 
 - **Don't implement** - Never write code or implement features. Creating devspec artifacts is fine, writing application code is not.
