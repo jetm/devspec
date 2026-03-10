@@ -24,7 +24,9 @@ Implement tasks from a devspec change.
 
    If a name is provided, use it. Otherwise:
    - Call `mcp__devspec__devspec_list` to get available changes
-   - Use the **AskUserQuestion tool** to let the user select
+   - If exactly one active change exists, auto-select it
+   - If zero changes exist, stop: "No active changes found. Run `/devspec-plan` to create one first."
+   - If two or more changes exist, use the **AskUserQuestion tool** to let the user select
 
    Always announce: "Using change: <name>"
 

@@ -19,7 +19,9 @@ Run the full devspec pipeline (plan, build, verify, archive) autonomously from a
 
 If a name is provided, use it. Otherwise:
 - Call `mcp__devspec__devspec_list` to get available changes
-- Use the **AskUserQuestion tool** to let the user select
+- If exactly one active change exists, auto-select it
+- If zero changes exist, hard-stop: "No active changes found. Run `/devspec-explore` to create one first."
+- If two or more changes exist, use the **AskUserQuestion tool** to let the user select
 
 Always announce: "Using change: `<name>`"
 
@@ -60,6 +62,15 @@ Call `mcp__devspec__devspec_handoff_read` with the change name.
   Run `/devspec-explore <name>` to flesh out the handoff.
   ```
 - Do NOT spawn the pipeline agent.
+
+### 2b. Create autonomous mode sentinel
+
+Create a sentinel file to signal hooks that an autonomous pipeline is running:
+```bash
+touch /tmp/devspec-autonomous-$$
+```
+
+This file is checked by hooks (e.g., devspec-build-guard.sh) to skip blocking behavior during autonomous execution.
 
 ### 3. Assemble the plan+build composite prompt
 
@@ -129,7 +140,12 @@ Spawn a separate foreground Task subagent for archiving:
 
 Wait for the agent to complete.
 
-### 8. Collect and present the final report
+### 8. Clean up sentinel and present the final report
+
+Remove the autonomous mode sentinel:
+```bash
+rm -f /tmp/devspec-autonomous-$$
+```
 
 Parse outputs from all agents and present a summary:
 
@@ -196,6 +212,7 @@ You are running the devspec plan+build phases autonomously. Execute both phases 
 1. **NEVER perform git operations.** Do not run `git add`, `git commit`, `git push`, `git checkout`, `git stash`, or any other git write command. All file changes remain unstaged.
 2. **NEVER ask the user questions.** You are running autonomously. If you encounter ambiguity at any phase, hard-stop: report the phase, what's unclear, what was completed, and what files were changed, then STOP.
 3. **Execute phases sequentially.** Plan, then build. Do not skip or reorder.
+4. **Use built-in tools for file operations.** Use Read (not cat/head/tail), Edit (not sed/awk), Write (not echo/cat heredoc), Glob (not find/ls), Grep (not grep/rg) for all file operations. NEVER use `cd` to change directories - use absolute paths or tool parameters instead.
 
 ## HANDOFF CONTEXT
 
@@ -294,6 +311,7 @@ You are running the devspec verify phase autonomously for change "{{CHANGE_NAME}
 1. **NEVER perform git operations.**
 2. **NEVER ask the user questions.** Run all checks and report findings.
 3. **Do NOT hard-stop on findings.** Always complete the report.
+4. **Use built-in tools for file operations.** Use Read (not cat/head/tail), Edit (not sed/awk), Write (not echo/cat heredoc), Glob (not find/ls), Grep (not grep/rg) for all file operations. NEVER use `cd` to change directories - use absolute paths or tool parameters instead.
 
 ## PHASE: VERIFY
 
@@ -384,6 +402,7 @@ Finalize the change.
 - Verify and archive run as separate foreground Task sub-agents from the top-level skill (not from within the composite subagent), giving each a clean context window
 - All file changes remain unstaged - never commit
 - Hard-stop is the only response to ambiguity - no guessing
+- Always clean up the sentinel file (`rm -f /tmp/devspec-autonomous-$$`) before ANY exit - success, hard-stop, or error
 - Archive is skipped if verify finds CRITICAL issues - the user must fix and re-run
 - Spec sync is skipped - it requires user interaction
 - All agents run with `bypassPermissions` - safety relies on the git prohibition, hard-stop rules, and handoff data fencing above. This is broader than the `context: fork` model used by individual skills.
