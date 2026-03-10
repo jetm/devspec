@@ -9,7 +9,9 @@ disable-model-invocation: true
 
 Orchestrate a multi-phase effort. Given an explore handoff describing a large effort, this skill loops: assess what's next, run the full devspec pipeline for that phase, commit, repeat - until the effort's completion criteria are met.
 
-**Input**: An effort name is required (passed as `$1`). If not provided, list changes and ask.
+**Input**: One or more change names (space-separated). If not provided, list changes and ask.
+- **Single name**: used as both the effort name and the handoff source
+- **Multiple names**: first name is the effort name; handoffs from ALL names are read and combined
 
 ---
 
@@ -41,13 +43,14 @@ Current phase records MUST contain `change` and `status`.
 
 ## Steps
 
-### 1. Select the effort
+### 1. Parse input
 
-If a name is provided, use it. Otherwise:
-- Call `mcp__devspec__devspec_list` to get available changes
-- Use the **AskUserQuestion tool** to let the user select
+Parse the arguments into a list of change names (space-separated).
 
-Always announce: "Using effort: `<name>`"
+- If no names provided: call `mcp__devspec__devspec_list` and use **AskUserQuestion** to let the user select one or more
+- The **first name** is always the effort name
+
+Always announce: "Using effort: `<effort-name>`" (and if multiple: "Combining handoffs from: `<all names>`")
 
 ### 2. Startup (fresh start vs resume)
 
@@ -66,22 +69,33 @@ cat ~/.local/share/devspec/<project>/multi/<effort>/manifest.yaml 2>/dev/null
 - Announce: "Resuming effort `<name>` - <N> phases completed, <resume action>"
 
 **If no manifest (fresh start):**
-1. Call `mcp__devspec__devspec_handoff_read` with the effort name to read the handoff from the seed change
-2. **If no handoff exists**, hard-stop:
-   ```
-   ## Effort Stopped
+1. Read handoffs from ALL input change names:
+   - For each name, call `mcp__devspec__devspec_handoff_read` with that name
+   - If ANY name has no handoff, hard-stop:
+     ```
+     ## Effort Stopped
 
-   **Effort:** <name>
-   **Phase:** Pre-validation
-   **Reason:** No handoff found for change "<name>".
+     **Effort:** <effort-name>
+     **Phase:** Pre-validation
+     **Reason:** No handoff found for change "<name-without-handoff>".
 
-   Run `/devspec-explore <name>` to create a handoff first.
-   ```
-3. **If handoff exists**, validate it contains: scope, requirements/goals, completion criteria
+     Run `/devspec-explore <name>` to create a handoff first.
+     ```
+2. **Combine handoffs** (only when multiple names were provided):
+   - Concatenate all handoffs under section headers:
+     ```
+     ## Area: <change-name-1>
+     <handoff content 1>
+
+     ## Area: <change-name-2>
+     <handoff content 2>
+     ```
+   - For a single name, use the handoff content as-is (no wrapper)
+3. **Validate** the combined handoff contains: scope, requirements/goals, completion criteria
 4. **If handoff is insufficient**, hard-stop with what's missing
 5. Create the manifest:
-   - Extract `vision` from the handoff (the overall goal/problem statement)
-   - Extract `completion_criteria` from the handoff (how to know the effort is done - look for "Completion Criteria", "Done When", "Success Criteria" sections, or infer from scope)
+   - Extract `vision` from the (combined) handoff (the overall goal/problem statement)
+   - Extract `completion_criteria` from the (combined) handoff (how to know the effort is done - look for "Completion Criteria", "Done When", "Success Criteria" sections, or infer from scope)
    - Create directory: `mkdir -p ~/.local/share/devspec/<project>/multi/<effort>/`
    - Write `manifest.yaml` with:
      ```yaml
@@ -95,11 +109,11 @@ cat ~/.local/share/devspec/<project>/multi/<effort>/manifest.yaml 2>/dev/null
      current_phase: null
      blocked_reason: null
      ```
-6. Delete the seed change directory to avoid orphan empty changes:
+6. Delete ALL seed change directories to avoid orphan empty changes:
    ```bash
-   rm -rf ~/.local/share/devspec/<project>/changes/<effort>/
+   rm -rf ~/.local/share/devspec/<project>/changes/<name1>/ ~/.local/share/devspec/<project>/changes/<name2>/ ...
    ```
-7. Announce: "Created effort `<name>` - entering phase loop"
+7. Announce: "Created effort `<effort-name>` - entering phase loop"
 
 ### 3. Phase loop
 
