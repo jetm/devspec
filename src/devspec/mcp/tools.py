@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import json
+import os
+import shutil
+import subprocess
+import time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -357,3 +362,86 @@ def devspec_preflight(project: str | None = None) -> dict:
         "summary": report.summary,
         "checks": [{"name": c.name, "status": c.status, "detail": c.detail} for c in report.checks],
     }
+
+
+_VALID_QTYPES = {"options", "confirm", "freetext"}
+_CACHE_DIR = Path.home() / ".cache" / "claude-ask"
+
+
+def _validate_questions(questions: list[dict]) -> str | None:
+    """Validate questions list. Returns error message or None if valid."""
+    if not questions:
+        return "Questions list must not be empty."
+    for i, q in enumerate(questions):
+        for field in ("id", "text", "type"):
+            if field not in q:
+                return f"Question {i}: missing required field '{field}'."
+        if q["type"] not in _VALID_QTYPES:
+            return f"Question {i}: invalid type '{q['type']}'. Must be one of: {', '.join(sorted(_VALID_QTYPES))}."
+        if q["type"] == "options" and not q.get("options"):
+            return f"Question {i}: type 'options' requires a non-empty 'options' dict."
+    return None
+
+
+@mcp.tool()
+def devspec_ask_questions(questions: list[dict], session_name: str | None = None) -> dict:
+    """Present structured questions to the user via the claude-ask TUI.
+
+    Use this when you need the user to choose between options, confirm a
+    decision, or provide structured freetext input. MUST be used instead of
+    inline text whenever presenting 3 or more choices.
+
+    Each question dict has:
+    - id (str): identifier, e.g. "Q1"
+    - text (str): the question text
+    - type (str): "options", "confirm", or "freetext"
+    - options (dict): required for type "options" — keys map to descriptions
+    - context (str, optional): background info shown between title and options
+    - hint (str, optional): placeholder text for freetext input
+    """
+    if not os.environ.get("KITTY_PID"):
+        return _error("no_kitty", "claude-ask requires the kitty terminal. KITTY_PID not found in environment.")
+
+    if shutil.which("claude-ask") is None:
+        return _error("not_found", "claude-ask is not on PATH. Expected at ~/.local/bin/claude-ask.")
+
+    if err_msg := _validate_questions(questions):
+        return _error("invalid_input", err_msg)
+
+    if not session_name:
+        session_name = f"ask-{int(time.time())}"
+
+    try:
+        result = subprocess.run(
+            ["claude-ask", "--inline", "--session", session_name],
+            input=json.dumps(questions),
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        return _error("not_found", "claude-ask is not on PATH. Expected at ~/.local/bin/claude-ask.")
+
+    # Read structured answers from the round YAML file
+    round_path = _CACHE_DIR / "sessions" / session_name / "round-1.yaml"
+    if not round_path.exists():
+        return _error("no_session", "Session YAML not found after claude-ask exited.")
+
+    data = yaml.safe_load(round_path.read_text())
+    if not isinstance(data, dict):
+        return _error("parse_error", "Failed to parse round YAML.")
+
+    # Check for cancellation (stdout contains "Cancelled")
+    if result.returncode != 0 or "Cancelled" in (result.stdout or ""):
+        return {"cancelled": True, "message": "User cancelled before completing questions."}
+
+    answered = []
+    for q in data.get("questions", []):
+        answered.append({
+            "id": q.get("id"),
+            "text": q.get("text"),
+            "answer": q.get("answer"),
+            "skipped": q.get("skipped", False),
+            "note": q.get("note"),
+        })
+
+    return {"cancelled": False, "questions": answered}
