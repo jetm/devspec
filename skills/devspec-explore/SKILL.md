@@ -256,6 +256,28 @@ When the emerging scope looks too large for a single change, suggest `/devspec-m
 
 ---
 
+## Structured Questions (claude-ask)
+
+When your questions accumulate, consider writing them as a round YAML file for `claude-ask` instead of inline text. This gives the user single-keypress selection, research/reflect before answering, and a review screen before committing answers.
+
+**When to trigger:**
+- 3 or more structured questions accumulate in a single response
+- Any question has predefined options (the user benefits from single-keypress selection)
+
+**How to trigger:**
+1. Write the round YAML to `~/.cache/claude-ask/sessions/<session-name>/round-N.yaml`
+2. Update the `~/.cache/claude-ask/current` symlink to point to the session directory
+3. Tell the user: "I've written N questions to claude-ask. Run `claude-ask` to answer them interactively, then `/answers` to load your responses."
+
+**When NOT to trigger:**
+- 1-2 simple questions — use inline Q1/Q2 markers instead
+- Questions requiring lengthy context that doesn't fit YAML well
+- The user has indicated they prefer inline answers
+
+This is guidance, not a gate — use judgment based on the conversation flow.
+
+---
+
 ## Guardrails
 
 - **Don't implement** - Never write code or implement features. Creating devspec artifacts is fine, writing application code is not.
