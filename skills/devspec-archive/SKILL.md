@@ -60,8 +60,6 @@ Archive a completed change.
    **Schema:** <schema-name>
    **Archived to:** <archivePath from response>
    **Specs:** Synced / No delta specs / Sync skipped
-
-   All done. Optional next step: `/devspec-learn <change-name>` to capture lessons.
    ```
 
 **Guardrails**

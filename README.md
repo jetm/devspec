@@ -116,7 +116,6 @@ ln -s $(pwd)/skills/devspec-* ~/.claude/skills/
 | Skill | Purpose |
 |-------|---------|
 | `/devspec-auto` | Run full pipeline autonomously from a handoff |
-| `/devspec-learn` | Capture lessons learned from a change |
 | `/devspec-memory` | Generate Claude Code auto memory for a project |
 
 No skill specifies a `model:` field - they all run at the current session model. `/devspec-auto` spawns all its sub-agents (plan+build, verify, archive) at sonnet.

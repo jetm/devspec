@@ -4,7 +4,7 @@ description: |
   Enter explore mode for thinking through ideas and investigating problems.
   Use when: "explore", "think about", "investigate", "devspec explore", "what if".
   Interactive thinking partner. Read-only - no code changes. Runs inline with extended thinking.
-allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, AskUserQuestion, Skill, mcp__devspec__*
+allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, mcp__devspec__*
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
@@ -60,7 +60,7 @@ When multiple approaches exist:
 2. **Be concrete** - Specific tradeoffs ("adds a new dependency", "reuses the existing delta_parser pattern") not generic ones ("might be more complex"). If you can't be concrete, you need to investigate first - dispatch parallel sub-agents (see Research Dispatch) and tell the user: "Let me analyze these options, one moment."
 3. **Scale guidance to complexity**:
    - **2 options**: Present a clear tradeoff comparison. The user can weigh them with their own context.
-   - **3+ options**: Present tradeoffs AND a recommendation with reasoning. The cognitive load of comparing many options is where a recommendation helps most.
+   - **3+ options**: Write a brief analysis with your recommendation, then use `claude-ask --inline` for the actual selection. Put the tradeoff summary in each option's `context` field so everything is in one place. Do NOT present options as inline text — the analysis paragraph is inline, the picker is structured.
 4. **When you lack context** - Don't recommend blindly and don't ask the user to pick blindly. Identify what specific context would inform the decision and ask for that.
 
 **Visualize**
@@ -179,21 +179,11 @@ If exploration leads to actionable work, write a handoff using the `mcp__devspec
 
 This captures the key insights and decisions from the exploration session so `/devspec-plan` can pick up where you left off.
 
-After writing the handoff, use the `AskUserQuestion` tool to present next steps. Include the change name in descriptions so the user can paste commands directly after `/compact`.
+After writing the handoff, output a single pasteable next step:
 
-- **Question**: "What would you like to do next?"
-- **Header**: "Next step"
-- **Options** (in this order):
-  1. **Label**: "/compact + /devspec-plan (Recommended)" — **Description**: "Free context space, then plan. After compact, run: /devspec-plan <change-name>"
-  2. **Label**: "/compact + /devspec-build" — **Description**: "Free context space, then build. After compact, run: /devspec-build <change-name>"
-  3. **Label**: "/devspec-plan now" — **Description**: "Plan immediately without compacting (if context space is sufficient)"
-  4. **Label**: "/devspec-build now" — **Description**: "Build immediately without compacting (if context space is sufficient)"
+"Run `/compact`. The session hook will show your next command."
 
-Replace `<change-name>` with the actual change name in all descriptions.
-
-Then act on the user's selection:
-- Options with `/compact`: output "Run `/compact` now. Then: `/devspec-plan <name>`" (or build) so the user has a single pasteable command ready
-- Options without `/compact`: invoke the skill immediately using the `Skill` tool with the change name as argument
+Do not present options or ask questions. The compact SessionStart hook detects the change state and prints the appropriate next command (`/devspec-plan <name>` or `/devspec-build <name>`).
 
 ---
 
