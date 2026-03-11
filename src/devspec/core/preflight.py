@@ -209,15 +209,12 @@ def check_tool_availability() -> list[PreflightCheck]:
         "ruff": "Python linter",
         "shellcheck": "Shell script linter",
         "uv": "Python package manager",
-        "ast-grep": "Structural code search",
         "claude": "Claude Code CLI",
     }
 
     missing = []
     for tool, description in tools.items():
-        # ast-grep binary is 'sg' on PATH
-        binary = "sg" if tool == "ast-grep" else tool
-        if not shutil.which(binary):
+        if not shutil.which(tool):
             missing.append(f"{tool} ({description})")
 
     if missing:

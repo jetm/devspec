@@ -45,7 +45,7 @@ This skill uses ultrathink-level reasoning for thorough verification.
    - Git state (dirty tree, stashes, leftover backup refs)
    - Data store health (existence, subdirectories, writability)
    - Active change integrity (valid structure, no missing metadata)
-   - Tool availability (ruff, shellcheck, uv, ast-grep, claude)
+   - Tool availability (ruff, shellcheck, uv, claude)
    Include the results as an "Environment Readiness" section in the verification report, before implementation quality results.
 
    **Test Runner** - detect and run in order:
@@ -61,15 +61,9 @@ This skill uses ultrathink-level reasoning for thorough verification.
    - Modified files include `.sh` or `.bash` and `shellcheck` on PATH → `shellcheck <each file>`
    - Modified files include `.c`, `.cpp`, `.h`, `.hpp` and `gcc`/`clang` available → syntax-only check (`-fsyntax-only`)
 
-   **AST Structural Checks** - run when ast-grep is available:
-   - Verify ast-grep: `command -v ast-grep`
-   - Detect modified file languages; find matching rule files in `src/devspec/data/patterns/<lang>/`
-   - Run on modified files: `ast-grep scan <modified files>`
-   - If `ast-grep` is not on PATH → skip and note "AST checks skipped (ast-grep not available)"
-
    **Certainty Grading** - apply to all findings:
    - **HIGH**: definitive failure - test suite exits non-zero, syntax error, linter error
-   - **MEDIUM**: warning or probable issue - linter warning, ast-grep warning-level match
+   - **MEDIUM**: warning or probable issue - linter warning
    - **LOW**: heuristic suggestion - pattern-based, needs context to confirm
 
 5. **Verify Completeness**

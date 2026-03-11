@@ -124,18 +124,7 @@ Implement tasks from a devspec change.
 
    Run before subtractive cleanup. Scan all files modified during the build phase.
 
-   **Tool availability check:**
-   ```bash
-   command -v ast-grep && echo "ast-grep available" || echo "ast-grep unavailable - using regex fallback"
-   ```
-
-   **If ast-grep available:** run structural analysis on modified files:
-   ```bash
-   ast-grep scan <modified_py_files> <modified_c_files> <modified_sh_files>
-   ```
-   Collect findings from `ast-grep scan` output. Then also run regex patterns below for patterns not covered by AST rules.
-
-   **If ast-grep unavailable:** run regex patterns only. Note "AST analysis unavailable - using regex fallback" in output.
+   **Prefer Serena's symbolic tools** (e.g. `find_symbol`, `get_symbols_overview`, `find_referencing_symbols`) over regex when available - they provide structural understanding of code that regex patterns cannot. Use regex patterns as a complement for simple syntactic matches (debug prints, breakpoints, TODO markers).
 
    **Certainty grading:**
 
@@ -190,7 +179,7 @@ Implement tasks from a devspec change.
    **Slop Detection output format:**
    ```
    ### Slop Detection
-   Tool: ast-grep + regex  [or: regex fallback (ast-grep unavailable)]
+   Tool: regex
 
    **HIGH (auto-fixed):**
    - `src/foo.py:42` - debug print removed
@@ -235,7 +224,7 @@ Implement tasks from a devspec change.
    ### Review & Refactor
 
    #### Slop Detection
-   Tool: ast-grep + regex
+   Tool: regex
 
    **HIGH (auto-fixed):**
    - `src/foo.py:42` - debug print removed
@@ -304,7 +293,7 @@ Task complete
 ### Review & Refactor
 
 #### Slop Detection
-Tool: regex fallback (ast-grep unavailable)
+Tool: regex
 No slop detected.
 
 #### Subtractive Cleanup
