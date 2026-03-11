@@ -4,7 +4,7 @@ description: |
   Enter explore mode for thinking through ideas and investigating problems.
   Use when: "explore", "think about", "investigate", "devspec explore", "what if".
   Interactive thinking partner. Read-only - no code changes. Runs inline with extended thinking.
-allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, mcp__devspec__*
+allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, AskUserQuestion, Skill, mcp__devspec__*
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
@@ -179,7 +179,21 @@ If exploration leads to actionable work, write a handoff using the `mcp__devspec
 
 This captures the key insights and decisions from the exploration session so `/devspec-plan` can pick up where you left off.
 
-After writing the handoff, include this advisory in your completion output: _Consider running `/compact` before `/devspec-plan` to free context space._
+After writing the handoff, use the `AskUserQuestion` tool to present next steps. Include the change name in descriptions so the user can paste commands directly after `/compact`.
+
+- **Question**: "What would you like to do next?"
+- **Header**: "Next step"
+- **Options** (in this order):
+  1. **Label**: "/compact + /devspec-plan (Recommended)" — **Description**: "Free context space, then plan. After compact, run: /devspec-plan <change-name>"
+  2. **Label**: "/compact + /devspec-build" — **Description**: "Free context space, then build. After compact, run: /devspec-build <change-name>"
+  3. **Label**: "/devspec-plan now" — **Description**: "Plan immediately without compacting (if context space is sufficient)"
+  4. **Label**: "/devspec-build now" — **Description**: "Build immediately without compacting (if context space is sufficient)"
+
+Replace `<change-name>` with the actual change name in all descriptions.
+
+Then act on the user's selection:
+- Options with `/compact`: output "Run `/compact` now. Then: `/devspec-plan <name>`" (or build) so the user has a single pasteable command ready
+- Options without `/compact`: invoke the skill immediately using the `Skill` tool with the change name as argument
 
 ---
 
@@ -256,31 +270,9 @@ When the emerging scope looks too large for a single change, suggest `/devspec-m
 
 ---
 
-## Structured Questions (claude-ask)
-
-When your questions accumulate, consider writing them as a round YAML file for `claude-ask` instead of inline text. This gives the user single-keypress selection, research/reflect before answering, and a review screen before committing answers.
-
-**When to trigger:**
-- 3 or more structured questions accumulate in a single response
-- Any question has predefined options (the user benefits from single-keypress selection)
-
-**How to trigger:**
-1. Write the round YAML to `~/.cache/claude-ask/sessions/<session-name>/round-N.yaml`
-2. Update the `~/.cache/claude-ask/current` symlink to point to the session directory
-3. Tell the user: "I've written N questions to claude-ask. Run `claude-ask` to answer them interactively, then `/answers` to load your responses."
-
-**When NOT to trigger:**
-- 1-2 simple questions — use inline Q1/Q2 markers instead
-- Questions requiring lengthy context that doesn't fit YAML well
-- The user has indicated they prefer inline answers
-
-This is guidance, not a gate — use judgment based on the conversation flow.
-
----
-
 ## Guardrails
 
-- **Don't implement** - Never write code or implement features. Creating devspec artifacts is fine, writing application code is not.
+- **Don't implement** - Never write code or implement features. Creating devspec artifacts is fine, writing application code is not. Note: `claude-ask` is interaction, not implementation — use it even in explore mode when presenting options.
 - **Don't fake understanding** - If something is unclear, dig deeper
 - **Don't rush** - Explore mode is thinking time, not task time
 - **Don't force structure** - Let patterns emerge naturally
