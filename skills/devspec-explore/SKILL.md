@@ -60,7 +60,7 @@ When multiple approaches exist:
 2. **Be concrete** - Specific tradeoffs ("adds a new dependency", "reuses the existing delta_parser pattern") not generic ones ("might be more complex"). If you can't be concrete, you need to investigate first - dispatch parallel sub-agents (see Research Dispatch) and tell the user: "Let me analyze these options, one moment."
 3. **Scale guidance to complexity**:
    - **2 options**: Present a clear tradeoff comparison. The user can weigh them with their own context.
-   - **3+ options**: Write a brief analysis with your recommendation, then use `claude-ask --inline` for the actual selection. Put the tradeoff summary in each option's `context` field so everything is in one place. Do NOT present options as inline text — the analysis paragraph is inline, the picker is structured.
+   - **3+ options**: Write a brief analysis with your recommendation, then use `devspec_ask_questions` for the actual selection. Include pre-computed `research`, `reflection`, and `recommendation` fields in the payload. The flow is async — the tool launches a TUI panel and returns immediately. Tell the user to run `/answers` when done. Do NOT present options as inline text — the analysis paragraph is inline, the picker is structured.
 4. **When you lack context** - Don't recommend blindly and don't ask the user to pick blindly. Identify what specific context would inform the decision and ask for that.
 
 **Visualize**

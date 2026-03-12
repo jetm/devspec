@@ -3,6 +3,7 @@ import click
 from devspec import __version__
 from devspec.commands.analyze import analyze
 from devspec.commands.archive import archive
+from devspec.commands.ask import ask
 from devspec.commands.context import context
 from devspec.commands.handoff import handoff
 from devspec.commands.init import init
@@ -22,6 +23,7 @@ def cli():
 
 
 cli.add_command(analyze)
+cli.add_command(ask)
 cli.add_command(init)
 cli.add_command(migrate)
 cli.add_command(new)
