@@ -204,7 +204,7 @@ When the user triggers research:
 3. **Dispatch three sub-agents in parallel** using the Task tool:
 
 #### Codebase Analyst
-- **Task tool subagent_type**: `Explore` (read-only, can search code)
+- **Task tool subagent_type**: `Explore`, **model**: `opus` (read-only, can search code)
 - **Prompt**: Search the project codebase for patterns, implementations, and integration points related to the topic. Look for existing code that is relevant, similar patterns already in use, and potential integration challenges.
 
 #### Docs Researcher
